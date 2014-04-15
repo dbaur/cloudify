@@ -59,6 +59,7 @@ import org.cloudifysource.esc.driver.provisioning.MachineDetails;
 import org.cloudifysource.esc.driver.provisioning.ManagementProvisioningContext;
 import org.cloudifysource.esc.driver.provisioning.ProvisioningContext;
 import org.cloudifysource.esc.driver.provisioning.context.ValidationContext;
+import org.cloudifysource.esc.driver.provisioning.openstack.rest.ComputeFloatingIp;
 import org.cloudifysource.esc.driver.provisioning.openstack.rest.FloatingIp;
 import org.cloudifysource.esc.driver.provisioning.openstack.rest.Network;
 import org.cloudifysource.esc.driver.provisioning.openstack.rest.NovaServer;
@@ -812,13 +813,24 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 
 			// Associate floating ips if configured
 			if (this.networkHelper.associateFloatingIp()) {
-				final String privateIPNetworkName = this.networkHelper.getPrivateIpNetworkName();
-				final Network privateIpNetwork = this.networkApi.getNetworkByName(privateIPNetworkName);
-				if (privateIpNetwork == null) {
-					throw new CloudProvisioningException("Couldn't find network '" + privateIPNetworkName
-							+ "' to assign floating IP.");
+				if(this.networkHelper.associateFloatingIpPool() == null) {
+					final String privateIPNetworkName = this.networkHelper.getPrivateIpNetworkName();
+					final Network privateIpNetwork = this.networkApi.getNetworkByName(privateIPNetworkName);
+					if (privateIpNetwork == null) {
+						throw new CloudProvisioningException("Couldn't find network '" + privateIPNetworkName
+								+ "' to assign floating IP.");
+					}
+					networkApi.createAndAssociateFloatingIp(serverId, privateIpNetwork.getId());
+				} else {
+					//associate a ip from the given pool
+					final ComputeFloatingIp ip = this.computeApi.getUnassignedFloatingIp(this.networkHelper.associateFloatingIpPool());
+					
+					if(ip == null) {
+						throw new CloudProvisioningException("Could not allocate a floating ip from pool "+this.networkHelper.associateFloatingIpPool());
+					}
+					
+					this.computeApi.assignFloatingIp(newServer.getId(), ip.getIp());
 				}
-				networkApi.createAndAssociateFloatingIp(serverId, privateIpNetwork.getId());
 			}
 
 			final MachineDetails md = this.createMachineDetails(template, newServer);
