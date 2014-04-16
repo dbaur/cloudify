@@ -991,7 +991,8 @@
 		<loadproperties srcfile="${build.properties.file}"/>
 		<mkdir dir="${xap.files.tmp.dir}" /> 
 		<echo message="Please wait. Downloading ${cloudify.cdn.publish.url}/com/gigaspaces/${s3.gs.packages.publish.folder}/${xap.zip.name}." />
-		<get verbose="true" src="${cloudify.cdn.publish.url}/com/gigaspaces/xap-core/${s3.gs.packages.publish.folder}/${xap.zip.name}" dest="${xap.files.tmp.dir}"/>
+		<!--<get verbose="true" src="${cloudify.cdn.publish.url}/com/gigaspaces/xap-core/${s3.gs.packages.publish.folder}/${xap.zip.name}" dest="${xap.files.tmp.dir}"/>-->
+		<get verbose="true" src="${cloudify.cdn.publish.url}/com/gigaspaces/xap-core/9.7.0-10495-RC2/gigaspaces-xap-premium-9.7.0-rc2-b10495.zip"/>
 	</target>
 	
 	<target name="cloudify.install">
