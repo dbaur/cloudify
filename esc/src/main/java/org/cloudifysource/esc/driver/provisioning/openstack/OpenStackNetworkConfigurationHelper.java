@@ -164,9 +164,14 @@ class OpenStackNetworkConfigurationHelper {
 			final Map<String, NetworkConfiguration> templates = cloudNetwork.getTemplates();
 			this.applicationNetworkConfiguration = templates.get(serviceNetwork.getTemplate());
 			if (this.applicationNetworkConfiguration == null) {
-				final String message = "Service network template not found '" + serviceNetwork.getTemplate() + "'";
-				logger.severe(message);
-				throw new CloudProvisioningException(message);
+				if(this.computeNetwork == null) {
+					final String message = "Service network template not found '" + serviceNetwork.getTemplate() + "'";
+					logger.severe(message);
+					throw new CloudProvisioningException(message);
+				} else {
+					//fall back to the compute network
+					logger.info("Service network template not found. Fallback to compute network");
+				}
 			}
 		}
 
