@@ -2,6 +2,9 @@ package de.uniulm.omi.flexiant;
 
 import com.extl.jade.user.*;
 
+import java.util.*;
+import java.util.ArrayList;
+
 /**
  * Created by daniel on 28.04.14.
  */
@@ -9,6 +12,35 @@ public class FlexiantComputeClient extends FlexiantBaseClient {
 
     public FlexiantComputeClient(String endpoint, String apiUserName, String password) {
         super(endpoint, apiUserName, password);
+    }
+
+    public List<Server> getServersByPrefix(String prefix) throws FlexiantException{
+
+        SearchFilter sf = new SearchFilter();
+        FilterCondition fc = new FilterCondition();
+
+        fc.setCondition(Condition.STARTS_WITH);
+        fc.setField("resourceName");
+
+        fc.getValue().add(prefix);
+
+        sf.getFilterConditions().add(fc);
+
+        try {
+            ListResult result = this.getService().listResources(sf,null,ResourceType.SERVER);
+
+            java.util.ArrayList<Server> servers = new ArrayList<Server>();
+
+            for(Object server : result.getList()) {
+                servers.add(this.mapServer((com.extl.jade.user.Server) server));
+            }
+
+            return servers;
+
+        } catch (ExtilityException e) {
+            throw new FlexiantException("Could not retrieve list of servers",e);
+        }
+
     }
 
     public Server createServer(String serverName, String serverProductOffer, String diskProductOffer, String vdc, String network, String image) throws FlexiantException {
@@ -65,6 +97,26 @@ public class FlexiantComputeClient extends FlexiantBaseClient {
         }
     }
 
+    protected Server mapServer(com.extl.jade.user.Server server) {
+        Server myServer = new Server();
+        myServer.setServerId(server.getResourceUUID());
+        myServer.setServerName(server.getResourceName());
+        for (Nic nic : server.getNics()) {
+            if (nic.getNetworkType().equals(NetworkType.IP)) {
+                for (Ip ip : nic.getIpAddresses()) {
+                    if (ip.getType().equals(IpType.IPV_4)) {
+                        myServer.setPublicIpAddress(ip.getIpAddress());
+                        myServer.setPrivateIpAddress(ip.getIpAddress());
+                    }
+                }
+            }
+        }
+        myServer.setInitialUser(server.getInitialUser());
+        myServer.setInitialPassword(server.getInitialPassword());
+
+        return myServer;
+    }
+
     public Server getServer(String serverUUID) throws FlexiantException {
 
         SearchFilter sf = new SearchFilter();
@@ -84,23 +136,8 @@ public class FlexiantComputeClient extends FlexiantBaseClient {
 
             com.extl.jade.user.Server server = (com.extl.jade.user.Server) result.getList().get(0);
 
-            Server myServer = new Server();
-            myServer.setServerId(server.getResourceUUID());
-            myServer.setServerName(server.getResourceName());
-            for (Nic nic : server.getNics()) {
-                if (nic.getNetworkType().equals(NetworkType.IP)) {
-                    for (Ip ip : nic.getIpAddresses()) {
-                        if (ip.getType().equals(IpType.IPV_4)) {
-                            myServer.setPublicIpAddress(ip.getIpAddress());
-                            myServer.setPrivateIpAddress(ip.getIpAddress());
-                        }
-                    }
-                }
-            }
-            myServer.setInitialUser(server.getInitialUser());
-            myServer.setInitialPassword(server.getInitialPassword());
+            return this.mapServer(server);
 
-            return myServer;
         } catch (ExtilityException e) {
             throw new FlexiantException(String.format("Error while creating server %s", serverUUID), e);
         }

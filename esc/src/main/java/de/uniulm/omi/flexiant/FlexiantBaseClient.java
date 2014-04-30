@@ -5,6 +5,7 @@ import com.extl.jade.user.UserService;
 
 import javax.xml.namespace.QName;
 import javax.xml.ws.BindingProvider;
+import java.net.MalformedURLException;
 import java.net.URL;
 
 /**
@@ -20,8 +21,12 @@ public class FlexiantBaseClient {
         this.customerUUID = apiUserName.split("/")[0];
 
         // Get the service WSDL from the client jar
-        URL url = ClassLoader.getSystemClassLoader().getResource(
-                "UserAPI.wsdl");
+        URL url = null;
+        try {
+            url = new URL(endpoint+"/?wsdl");
+        } catch (MalformedURLException e) {
+            throw new IllegalArgumentException(String.format("The WSDL Url %s is malformed. Check your endpoint.",endpoint+"/?wsdl"),e);
+        }
 
         // Get the UserAPI
         UserAPI api = new UserAPI(url,
