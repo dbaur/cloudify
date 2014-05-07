@@ -23,9 +23,9 @@ public class FlexiantBaseClient {
         // Get the service WSDL from the client jar
         URL url = null;
         try {
-            url = new URL(endpoint+"/?wsdl");
+            url = new URL(endpoint + "/?wsdl");
         } catch (MalformedURLException e) {
-            throw new IllegalArgumentException(String.format("The WSDL Url %s is malformed. Check your endpoint.",endpoint+"/?wsdl"),e);
+            throw new IllegalArgumentException(String.format("The WSDL Url %s is malformed. Check your endpoint.", endpoint + "/?wsdl"), e);
         }
 
         // Get the UserAPI

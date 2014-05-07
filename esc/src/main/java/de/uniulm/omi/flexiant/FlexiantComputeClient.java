@@ -2,8 +2,8 @@ package de.uniulm.omi.flexiant;
 
 import com.extl.jade.user.*;
 
-import java.util.*;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by daniel on 28.04.14.
@@ -14,7 +14,7 @@ public class FlexiantComputeClient extends FlexiantBaseClient {
         super(endpoint, apiUserName, password);
     }
 
-    public List<Server> getServersByPrefix(String prefix) throws FlexiantException{
+    public List<Server> getServersByPrefix(String prefix) throws FlexiantException {
 
         SearchFilter sf = new SearchFilter();
         FilterCondition fc = new FilterCondition();
@@ -27,18 +27,18 @@ public class FlexiantComputeClient extends FlexiantBaseClient {
         sf.getFilterConditions().add(fc);
 
         try {
-            ListResult result = this.getService().listResources(sf,null,ResourceType.SERVER);
+            ListResult result = this.getService().listResources(sf, null, ResourceType.SERVER);
 
             java.util.ArrayList<Server> servers = new ArrayList<Server>();
 
-            for(Object server : result.getList()) {
+            for (Object server : result.getList()) {
                 servers.add(this.mapServer((com.extl.jade.user.Server) server));
             }
 
             return servers;
 
         } catch (ExtilityException e) {
-            throw new FlexiantException("Could not retrieve list of servers",e);
+            throw new FlexiantException("Could not retrieve list of servers", e);
         }
 
     }
