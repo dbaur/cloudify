@@ -29,6 +29,13 @@
             <url>https://github.com/iliapolo/maven-repo/raw/master</url>
         </repository>
 
+        <!-- Third party repo for jadeclient -->
+        <repository>
+            <id>eladron</id>
+            <name>eladron</name>
+            <url>http://eladron.e-technik.uni-ulm.de:8081/nexus/content/repositories/thirdparty/</url>
+        </repository>
+
 	</repositories>
 
 	<dependencies>
