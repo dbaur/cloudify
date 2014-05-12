@@ -1,5 +1,7 @@
+
+
 /***************
- * Cloud configuration file for the openstack-grizzly cloud
+ * Cloud configuration file for the flexiant cloud
  */
 cloud {
 	// Mandatory. The name of the cloud, as it will appear in the Cloudify UI.
