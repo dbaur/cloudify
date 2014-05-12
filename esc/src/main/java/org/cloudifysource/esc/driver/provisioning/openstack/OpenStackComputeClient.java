@@ -10,6 +10,12 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  ******************************************************************************/
+
+/**
+ * This file was changed.
+ *
+ * Added possibility to assign floating ips from a fixed pool.
+ */
 package org.cloudifysource.esc.driver.provisioning.openstack;
 
 import java.util.ArrayList;
