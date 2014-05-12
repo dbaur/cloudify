@@ -1,7 +1,9 @@
 package de.uniulm.omi.flexiant;
 
 /**
- * Created by daniel on 29.04.14.
+ * Local object for the flexiant server object.
+ *
+ * @see net.flexiant.extility.Server
  */
 public class Server {
     protected String publicIpAddress;

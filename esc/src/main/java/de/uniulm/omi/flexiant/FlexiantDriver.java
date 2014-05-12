@@ -19,6 +19,9 @@ public class FlexiantDriver extends BaseProvisioningDriver {
 
     protected final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(this.getClass().getName());
 
+    /**
+     * @see org.cloudifysource.esc.driver.provisioning.BaseProvisioningDriver#initDeployer(org.cloudifysource.domain.cloud.Cloud)
+     */
     @Override
     protected void initDeployer(Cloud cloud) {
         this.cloud = cloud;
@@ -39,6 +42,14 @@ public class FlexiantDriver extends BaseProvisioningDriver {
         System.setProperty("jsse.enableSNIExtension", "false");
     }
 
+    /**
+     * Creates a machine details object from the provided template and the server.
+     *
+     * @param template the template object
+     * @param server the server.
+     *
+     * @return the machine details.
+     */
     protected MachineDetails createMachineDetails(final ComputeTemplate template, final Server server) {
 
         final MachineDetails md = this.createMachineDetailsForTemplate(template);
@@ -55,6 +66,9 @@ public class FlexiantDriver extends BaseProvisioningDriver {
         return md;
     }
 
+    /**
+     * @see org.cloudifysource.esc.driver.provisioning.BaseProvisioningDriver#createServer(String, long, org.cloudifysource.domain.cloud.compute.ComputeTemplate)
+     */
     @Override
     protected MachineDetails createServer(String serverName, long endTime,
                                           ComputeTemplate template) throws CloudProvisioningException,
@@ -78,6 +92,9 @@ public class FlexiantDriver extends BaseProvisioningDriver {
         }
     }
 
+    /**
+     * @see org.cloudifysource.esc.driver.provisioning.BaseProvisioningDriver#handleProvisioningFailure(int, int, Exception, org.cloudifysource.esc.driver.provisioning.MachineDetails[])
+     */
     @Override
     protected void handleProvisioningFailure(int numberOfManagementMachines,
                                              int numberOfErrors, Exception firstCreationException,
@@ -85,6 +102,9 @@ public class FlexiantDriver extends BaseProvisioningDriver {
             throws CloudProvisioningException {
     }
 
+    /**
+     * @see org.cloudifysource.esc.driver.provisioning.BaseProvisioningDriver#getExistingManagementServers()
+     */
     @Override
     public MachineDetails[] getExistingManagementServers() throws CloudProvisioningException {
 
@@ -103,6 +123,9 @@ public class FlexiantDriver extends BaseProvisioningDriver {
 
     }
 
+    /**
+     * @see org.cloudifysource.esc.driver.provisioning.BaseProvisioningDriver#stopManagementMachines()
+     */
     @Override
     public void stopManagementMachines()
             throws TimeoutException, CloudProvisioningException {
@@ -117,6 +140,9 @@ public class FlexiantDriver extends BaseProvisioningDriver {
         throw new UnsupportedOperationException("Method not implemented");
     }
 
+    /**
+     * @see org.cloudifysource.esc.driver.provisioning.BaseProvisioningDriver#startManagementMachines(org.cloudifysource.esc.driver.provisioning.ManagementProvisioningContext, long, java.util.concurrent.TimeUnit)
+     */
     @Override
     public MachineDetails[] startManagementMachines(final ManagementProvisioningContext context, final long duration,
                                                     final TimeUnit unit)
@@ -138,6 +164,9 @@ public class FlexiantDriver extends BaseProvisioningDriver {
         return createdMachines;
     }
 
+    /**
+     * @see org.cloudifysource.esc.driver.provisioning.BaseProvisioningDriver#startMachine(org.cloudifysource.esc.driver.provisioning.ProvisioningContext, long, java.util.concurrent.TimeUnit)
+     */
     @Override
     public MachineDetails startMachine(final ProvisioningContext context, final long duration, final TimeUnit unit)
             throws TimeoutException, CloudProvisioningException {
@@ -152,6 +181,9 @@ public class FlexiantDriver extends BaseProvisioningDriver {
         return md;
     }
 
+    /**
+     * @see org.cloudifysource.esc.driver.provisioning.BaseProvisioningDriver#validateCloudConfiguration(org.cloudifysource.esc.driver.provisioning.context.ValidationContext)
+     */
     @Override
     public void validateCloudConfiguration(ValidationContext validationContext) throws CloudProvisioningException {
         super.validateCloudConfiguration(validationContext);

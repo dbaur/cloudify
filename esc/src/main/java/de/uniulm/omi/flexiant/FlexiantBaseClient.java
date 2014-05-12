@@ -1,7 +1,7 @@
 package de.uniulm.omi.flexiant;
 
-import com.extl.jade.user.UserAPI;
-import com.extl.jade.user.UserService;
+import net.flexiant.extility.UserAPI;
+import net.flexiant.extility.UserService;
 
 import javax.xml.namespace.QName;
 import javax.xml.ws.BindingProvider;
@@ -9,19 +9,30 @@ import java.net.MalformedURLException;
 import java.net.URL;
 
 /**
- * Created by daniel on 28.04.14.
+ * Base client for creating a connection to
+ * the flexiant extility api.
  */
 public class FlexiantBaseClient {
 
     private UserService service;
     private String customerUUID;
 
+    /**
+     * Constructor for the class.
+     *
+     * Creates a connection to the server at the given endpoint using
+     * the apiUserName and password for auth.
+     *
+     * @param endpoint URL for the flexiant api
+     * @param apiUserName User for authentication
+     * @param password Password for authentication
+     */
     public FlexiantBaseClient(String endpoint, String apiUserName, String password) {
 
         this.customerUUID = apiUserName.split("/")[0];
 
         // Get the service WSDL from the client jar
-        URL url = null;
+        URL url;
         try {
             url = new URL(endpoint + "/?wsdl");
         } catch (MalformedURLException e) {
@@ -49,10 +60,20 @@ public class FlexiantBaseClient {
                 password);
     }
 
+    /**
+     * Returns the user service for calling operations on the webservice.
+     *
+     * @return The service for calling operations on the webservice.
+     */
     protected UserService getService() {
         return this.service;
     }
 
+    /**
+     * Returns the customer uuid of the authenticated user.
+     *
+     * @return the customer uuid.
+     */
     protected String getCustomerUUID() {
         return this.customerUUID;
     }

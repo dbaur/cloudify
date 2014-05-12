@@ -1,19 +1,31 @@
 package de.uniulm.omi.flexiant;
 
-import com.extl.jade.user.*;
+import net.flexiant.extility.*;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Created by daniel on 28.04.14.
+ * Client for calling compute operations on flexiants extility api.
  */
 public class FlexiantComputeClient extends FlexiantBaseClient {
 
+    /**
+     * @see de.uniulm.omi.flexiant.FlexiantComputeClient#FlexiantComputeClient(String, String, String)
+     */
     public FlexiantComputeClient(String endpoint, String apiUserName, String password) {
         super(endpoint, apiUserName, password);
     }
 
+    /**
+     * Returns all servers whose names are matching the given prefix.
+     *
+     * @param prefix the prefix the server names should match.
+     *
+     * @return a list of servers matching the prefix
+     *
+     * @throws FlexiantException
+     */
     public List<Server> getServersByPrefix(String prefix) throws FlexiantException {
 
         SearchFilter sf = new SearchFilter();
@@ -32,7 +44,7 @@ public class FlexiantComputeClient extends FlexiantBaseClient {
             java.util.ArrayList<Server> servers = new ArrayList<Server>();
 
             for (Object server : result.getList()) {
-                servers.add(this.mapServer((com.extl.jade.user.Server) server));
+                servers.add(this.mapServer((net.flexiant.extility.Server) server));
             }
 
             return servers;
@@ -43,8 +55,22 @@ public class FlexiantComputeClient extends FlexiantBaseClient {
 
     }
 
+    /**
+     * Creates a server with the given properties.
+     *
+     * @param serverName name of the server.
+     * @param serverProductOffer the product offer to use.
+     * @param diskProductOffer the product offer to use for the disk.
+     * @param vdc the virtual data center in which the server is created.
+     * @param network the network the node will be attached.
+     * @param image the os image to use for the server.
+     *
+     * @return the created server.
+     *
+     * @throws FlexiantException
+     */
     public Server createServer(String serverName, String serverProductOffer, String diskProductOffer, String vdc, String network, String image) throws FlexiantException {
-        com.extl.jade.user.Server server = new com.extl.jade.user.Server();
+        net.flexiant.extility.Server server = new net.flexiant.extility.Server();
         server.setResourceName(serverName);
         server.setCustomerUUID(this.getCustomerUUID());
         server.setProductOfferUUID(serverProductOffer);
@@ -80,14 +106,70 @@ public class FlexiantComputeClient extends FlexiantBaseClient {
         }
     }
 
+    /**
+     * Starts the given server.
+     *
+     * @param serverUUID the uuid of the server
+     *
+     * @throws FlexiantException
+     */
     public void startServer(String serverUUID) throws FlexiantException {
         this.changeServerStatus(serverUUID, ServerStatus.RUNNING);
     }
 
+    /**
+     * Starts the given server
+     *
+     * @see de.uniulm.omi.flexiant.FlexiantComputeClient#startServer(String)
+     *
+     * @param server the server to start.
+     *
+     * @throws FlexiantException
+     */
+    public void startServer(Server server) throws FlexiantException {
+        if(server == null) {
+            throw new IllegalArgumentException("The given server must not be null.");
+        }
+
+        this.startServer(server.getServerId());
+    }
+
+    /**
+     * Stops the given server.
+     *
+     * @param serverUUID the uuid of the server to stop.
+     *
+     * @throws FlexiantException
+     */
     public void stopServer(String serverUUID) throws FlexiantException {
         this.changeServerStatus(serverUUID, ServerStatus.STOPPED);
     }
 
+    /**
+     * Stops the given server.
+     *
+     * @see de.uniulm.omi.flexiant.FlexiantComputeClient#stopServer(String)
+     *
+     * @param server the server to stop.
+     *
+     * @throws FlexiantException
+     */
+    public void stopServer(Server server) throws FlexiantException {
+        if(server == null) {
+            throw new IllegalArgumentException("The given server must not be null.");
+        }
+
+        this.stopServer(server.getServerId());
+    }
+
+    /**
+     * Changes the server status to the given status.
+     *
+     * @param serverUUID the id of the server.
+     * @param status the status the server should change to.
+     *
+     * @throws FlexiantException
+     */
     protected void changeServerStatus(String serverUUID, ServerStatus status) throws FlexiantException {
         try {
             Job job = this.getService().changeServerStatus(serverUUID, status, true, null, null);
@@ -97,7 +179,17 @@ public class FlexiantComputeClient extends FlexiantBaseClient {
         }
     }
 
-    protected Server mapServer(com.extl.jade.user.Server server) {
+    /**
+     * Maps the given flexiant server to an local server.
+     *
+     * @see net.flexiant.extility.Server
+     * @see de.uniulm.omi.flexiant.Server
+     *
+     * @param server the flexiant server
+     *
+     * @return the local server.
+     */
+    protected Server mapServer(net.flexiant.extility.Server server) {
         Server myServer = new Server();
         myServer.setServerId(server.getResourceUUID());
         myServer.setServerName(server.getResourceName());
@@ -117,6 +209,15 @@ public class FlexiantComputeClient extends FlexiantBaseClient {
         return myServer;
     }
 
+    /**
+     * Returns information about the given server.
+     *
+     * @param serverUUID the id of the server.
+     *
+     * @return a server object containing the information about the server.
+     *
+     * @throws FlexiantException
+     */
     public Server getServer(String serverUUID) throws FlexiantException {
 
         SearchFilter sf = new SearchFilter();
@@ -134,7 +235,7 @@ public class FlexiantComputeClient extends FlexiantBaseClient {
                 throw new FlexiantException(String.format("Could not retrieve server %s", serverUUID));
             }
 
-            com.extl.jade.user.Server server = (com.extl.jade.user.Server) result.getList().get(0);
+            net.flexiant.extility.Server server = (net.flexiant.extility.Server) result.getList().get(0);
 
             return this.mapServer(server);
 
