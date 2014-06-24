@@ -20,6 +20,7 @@ import org.cloudifysource.domain.cloud.Cloud;
 import org.cloudifysource.domain.cloud.compute.ComputeTemplate;
 import org.cloudifysource.esc.driver.provisioning.*;
 import org.cloudifysource.esc.driver.provisioning.context.ValidationContext;
+import org.hibernate.cfg.NotYetImplementedException;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -102,6 +103,7 @@ public class FlexiantDriver extends BaseProvisioningDriver {
             final Server server = this.flexiantComputeClient.createServer(serverName, serverProductOffer, diskProductOffer, vdc, network, image);
             this.flexiantComputeClient.startServer(server.getServerId());
             logger.fine(String.format("Created new server with resource id %s",server.getServerId()));
+                        
             return this.createMachineDetails(template, server);
         } catch (FlexiantException e) {
             throw new CloudProvisioningException("Could not create server", e);
@@ -116,6 +118,13 @@ public class FlexiantDriver extends BaseProvisioningDriver {
                                              int numberOfErrors, Exception firstCreationException,
                                              MachineDetails[] createdManagementMachines)
             throws CloudProvisioningException {
+    	
+    	try {
+			this.stopManagementMachines();
+		} catch (TimeoutException e) {
+			throw new CloudProvisioningException("A timout occured, while handling the provisioning failure",e);
+		}
+    	
     }
 
     /**
@@ -145,15 +154,28 @@ public class FlexiantDriver extends BaseProvisioningDriver {
     @Override
     public void stopManagementMachines()
             throws TimeoutException, CloudProvisioningException {
-        throw new UnsupportedOperationException("Method not implemented");
+        
+    	//retrieve any existing management machines
+    	final MachineDetails[] managementMachines = this.getExistingManagementServers();
+    	
+    	for(final MachineDetails machineDetails : managementMachines) {
+    		try {
+				this.flexiantComputeClient.deleteServer(machineDetails.getMachineId());
+			} catch (FlexiantException e) {
+				throw new CloudProvisioningException(String.format("Could not stop server with id %s", machineDetails.getMachineId()),e);
+			}
+    	}
     }
 
+    /**
+     * @see org.cloudifysource.esc.driver.provisioning.BaseProvisioningDriver#stopMachine()
+     */
     @Override
     public boolean stopMachine(final String machineIp, final long duration, final TimeUnit unit)
             throws InterruptedException,
             TimeoutException, CloudProvisioningException {
-        logger.info(String.format("Deleting server with id = %s",machineIp));
-        throw new UnsupportedOperationException("Method not implemented");
+        
+    	return super.stopMachine(machineIp, duration, unit);
     }
 
     /**

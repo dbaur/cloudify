@@ -70,7 +70,7 @@ public class FlexiantComputeClient extends FlexiantBaseClient {
         }
 
     }
-
+    
     /**
      * Creates a server with the given properties.
      *
@@ -110,15 +110,6 @@ public class FlexiantComputeClient extends FlexiantBaseClient {
             return this.getServer(serverJob.getItemUUID());
         } catch (ExtilityException e) {
             throw new FlexiantException("Could not create server", e);
-        }
-    }
-
-    public void deleteServer(String server) throws FlexiantException {
-        try {
-            Job job = this.getService().deleteResource(server, true, null);
-            this.getService().waitForJob(job.getResourceUUID(), true);
-        } catch (ExtilityException e) {
-            throw new FlexiantException("Could not delete server", e);
         }
     }
 
@@ -176,6 +167,44 @@ public class FlexiantComputeClient extends FlexiantBaseClient {
         }
 
         this.stopServer(server.getServerId());
+    }
+    
+    /**
+     * Deletes the given server.
+     * 
+     * @param server the server to be deleted.
+     * 
+     * @throws FlexiantException
+     */
+    public void deleteServer(final Server server) throws FlexiantException {
+    	this.deleteServer(server.getServerId());
+    }
+    
+    /**
+     * Deletes the server identified by the given id.
+     * 
+     * @param server id of the server
+     * 
+     * @throws FlexiantException
+     */
+    public void deleteServer(final String server) throws FlexiantException {
+    	this.deleteResource(server);
+    }
+     
+    /**
+     * Deletes a resource (and all related entities) identified by the given uuid.
+     * 
+     * @param uuid of the resource.
+     * 
+     * @throws FlexiantException if the resource can not be deleted.
+     */
+    protected void deleteResource(final String uuid) throws FlexiantException {
+    	try {
+			final Job job = this.getService().deleteResource(uuid, true, null);
+			this.getService().waitForJob(job.getResourceUUID(), true);
+		} catch (ExtilityException e) {
+			throw new FlexiantException("Could not delete resource",e);
+		}
     }
 
     /**
