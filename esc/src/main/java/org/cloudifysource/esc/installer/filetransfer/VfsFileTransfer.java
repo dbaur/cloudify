@@ -219,7 +219,7 @@ public abstract class VfsFileTransfer implements FileTransfer {
 				logger.fine("Remote directory resolved successfully.");
 				return targetDirectory;
 			} catch (final FileSystemException fse) {
-				logger.fine("Attempt number: " + (i + 1) + " to reslve remote directory failed."
+				logger.fine("Attempt number: " + (i + 1) + " to resolve remote directory failed."
 						+ " This may be a temporary issue while remote machine is starting up.");
 				try {
 					Thread.sleep(installerConfiguration.getFileTransferConnectionRetryIntervalMillis());
