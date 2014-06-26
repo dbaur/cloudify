@@ -16,15 +16,18 @@
 
 package de.uniulm.omi.flexiant;
 
-import org.cloudifysource.domain.cloud.Cloud;
-import org.cloudifysource.domain.cloud.compute.ComputeTemplate;
-import org.cloudifysource.esc.driver.provisioning.*;
-import org.cloudifysource.esc.driver.provisioning.context.ValidationContext;
-import org.hibernate.cfg.NotYetImplementedException;
-
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+
+import org.cloudifysource.domain.cloud.Cloud;
+import org.cloudifysource.domain.cloud.compute.ComputeTemplate;
+import org.cloudifysource.esc.driver.provisioning.BaseProvisioningDriver;
+import org.cloudifysource.esc.driver.provisioning.CloudProvisioningException;
+import org.cloudifysource.esc.driver.provisioning.MachineDetails;
+import org.cloudifysource.esc.driver.provisioning.ManagementProvisioningContext;
+import org.cloudifysource.esc.driver.provisioning.ProvisioningContext;
+import org.cloudifysource.esc.driver.provisioning.context.ValidationContext;
 
 public class FlexiantDriver extends BaseProvisioningDriver {
 
@@ -41,6 +44,9 @@ public class FlexiantDriver extends BaseProvisioningDriver {
      */
     @Override
     protected void initDeployer(Cloud cloud) {
+    	
+    	System.setProperty("jsse.enableSNIExtension", "false");
+    	
         this.cloud = cloud;
 
         // we take the endpoint from the mangement machine template, as the
@@ -53,10 +59,7 @@ public class FlexiantDriver extends BaseProvisioningDriver {
         final String apiUserName = this.cloud.getUser().getUser();
 
         logger.fine(String.format("Creating connection to flexiant endpoint %s with username=%s and password=*****", endpoint, apiUserName));
-        this.flexiantComputeClient = new FlexiantComputeClient(endpoint, apiUserName, password);
-
-
-        System.setProperty("jsse.enableSNIExtension", "false");
+        this.flexiantComputeClient = new FlexiantComputeClient(endpoint, apiUserName, password);       
     }
 
     /**
@@ -134,7 +137,7 @@ public class FlexiantDriver extends BaseProvisioningDriver {
     public MachineDetails[] getExistingManagementServers() throws CloudProvisioningException {
 
         try {
-            final List<Server> servers = this.flexiantComputeClient.getServersByPrefix(this.serverNamePrefix);
+            final List<Server> servers = this.flexiantComputeClient.getServers(this.serverNamePrefix);
 
             MachineDetails[] mds = new MachineDetails[servers.size()];
             for (int i = 0; i < servers.size(); i++) {
@@ -175,7 +178,26 @@ public class FlexiantDriver extends BaseProvisioningDriver {
             throws InterruptedException,
             TimeoutException, CloudProvisioningException {
         
-    	return super.stopMachine(machineIp, duration, unit);
+    	Server server = null;
+    	
+    	try {
+			 server = this.flexiantComputeClient.getServerByIp(machineIp);
+		} catch (FlexiantException e) {
+			throw new CloudProvisioningException(String.format("Error while retrieving server with ip %s", machineIp),e);
+		}
+    	
+    	if(server == null) {
+    		throw new CloudProvisioningException(String.format("Could not find a server with ip %s", machineIp));
+    	}
+    	
+    	
+    	try {
+			this.flexiantComputeClient.deleteServer(server);
+		} catch (FlexiantException e) {
+			throw new CloudProvisioningException(String.format("Could not delete server with ip %s", machineIp),e);
+		}
+    	
+    	return true;
     }
 
     /**

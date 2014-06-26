@@ -23,6 +23,11 @@ package de.uniulm.omi.flexiant;
 public class FlexiantException extends Exception {
 
     /**
+	 * Default serial version.
+	 */
+	private static final long serialVersionUID = 1L;
+
+	/**
      * @see java.lang.Exception#Exception(String)
      */
     public FlexiantException(String message) {

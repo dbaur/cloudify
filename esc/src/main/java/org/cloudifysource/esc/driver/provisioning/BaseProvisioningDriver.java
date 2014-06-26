@@ -59,7 +59,7 @@ public abstract class BaseProvisioningDriver extends BaseComputeDriver {
     protected static final String EVENT_MACHINES_DESTROYED_SUCCESSFULLY = "machines_destroyed_succesfully";
     protected static final String EVENT_MGMT_VMS_STARTED = "management_started_successfully";
     protected static final String AGENT_MACHINE_PREFIX = "cloudify-agent-";
-    protected static final String MANAGMENT_MACHINE_PREFIX = "cloudify-managememnt-";
+    protected static final String MANAGMENT_MACHINE_PREFIX = "cloudify-management-";
 
     protected boolean management;
     protected static AtomicInteger counter = new AtomicInteger();

@@ -42,7 +42,7 @@ public class FlexiantComputeClient extends FlexiantBaseClient {
      *
      * @throws FlexiantException
      */
-    public List<Server> getServersByPrefix(String prefix) throws FlexiantException {
+    public List<Server> getServers(String prefix) throws FlexiantException {
 
         SearchFilter sf = new SearchFilter();
         FilterCondition fc = new FilterCondition();
@@ -55,20 +55,101 @@ public class FlexiantComputeClient extends FlexiantBaseClient {
         sf.getFilterConditions().add(fc);
 
         try {
-            ListResult result = this.getService().listResources(sf, null, ResourceType.SERVER);
-
-            java.util.ArrayList<Server> servers = new ArrayList<Server>();
-
-            for (Object server : result.getList()) {
-                servers.add(this.mapServer((net.flexiant.extility.Server) server));
-            }
-
-            return servers;
-
+            return this.getServers(sf);
         } catch (ExtilityException e) {
             throw new FlexiantException("Could not retrieve list of servers", e);
         }
 
+    }
+    
+    /**
+     * Returns all servers.
+     * 
+     * @return all servers.
+     * 
+     * @throws FlexiantException
+     */
+    public List<Server> getServers() throws FlexiantException {
+    	try{
+    		SearchFilter sf = null;
+    		return this.getServers(sf);
+    	} catch (ExtilityException e) {
+    		throw new FlexiantException("Could not retrieve list of servers", e);
+    	}
+    }
+    
+    /**
+     * Returns all servers matching search filter.
+     * 
+     * @param sf the search filter.
+     * 
+     * @return all servers matching the given search filter.
+     * 
+     * @throws ExtilityException
+     */
+    protected List<Server> getServers(SearchFilter sf) throws ExtilityException{
+    	
+    	ListResult result = this.getService().listResources(sf, null, ResourceType.SERVER);
+    	
+        java.util.ArrayList<Server> servers = new ArrayList<Server>();
+        
+        for (Object server : result.getList()) {
+            servers.add(this.mapServer((net.flexiant.extility.Server) server));
+        }
+        
+        return servers;
+    }
+           
+    /**
+     * Retrieves the server having the given ip.
+     * 
+     * It seems that flexiant does not allow to query by ip. Therefore, this
+     * query loops through all servers, finding the ip.
+     * 
+     * @param ip the ip of the server.
+     * 
+     * @return the server having the given ip.
+     *  
+     * @throws FlexiantException
+     */
+    public Server getServerByIp(String ip) throws FlexiantException {
+    	return this.searchByIp(this.getServers(), ip);
+    }
+    
+    /**
+     * Retrieves the server having the ip and matching the given name filter.
+     * 
+     * As we need to loop through all existing servers, the name filter can increase
+     * the speed. 
+     * 
+     * @see FlexiantComputeClient#getServerByIp(String)
+     * 
+     * @param ip the ip of the server.
+     * @param filter prefix to filter list of servers
+     * 
+     * @return the server with having the given ip
+     * 
+     * @throws FlexiantException
+     */
+    public Server getServerByIp(String ip, String filter) throws FlexiantException {
+    	return this.searchByIp(this.getServers(filter), ip);
+    }
+    
+    /**
+     * Searches for the given ip, in the given list of servers.
+     * 
+     * @param servers list of servers to search in.
+     * @param ip ip to search for.
+     * 
+     * @return the server matching the ip or null
+     */
+    protected Server searchByIp(List<Server> servers, String ip) {
+    	for(Server server : servers) {
+    		if(server.getPublicIpAddress().equals(ip) || server.getPrivateIpAddress().equals(ip)) {
+    			return server;
+    		}
+    	}
+    	return null;
     }
     
     /**
