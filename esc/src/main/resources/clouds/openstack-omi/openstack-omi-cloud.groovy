@@ -82,7 +82,7 @@ cloud {
                     // Mandatory. Image ID.
                     imageId imageId
                     // Mandatory. Files from the local directory will be copied to this directory on the remote machine.
-                    remoteDirectory "/root/gs-files"
+                    remoteDirectory "/home/ubuntu/gs-files"
                     // Mandatory. Amount of RAM available to machine.
                     machineMemoryMB 1900
                     // Mandatory. Hardware ID.
@@ -93,7 +93,7 @@ cloud {
                     // are not used.
                     keyFile keyFile
 
-                    username "root"
+                    username "ubuntu"
 
                     // Additional template options.
                     // When used with the default driver, the option names are considered
@@ -149,7 +149,7 @@ cloud {
                     privileged true
 
                     // optional. A native command line to be executed before the cloudify agent is started.
-                    initializationCommand "#!/bin/sh\ncp /etc/hosts /tmp/hosts\necho 127.0.0.1 `hostname` > /etc/hosts\ncat  /tmp/hosts >> /etc/hosts"
+                    initializationCommand "#!/bin/sh\ncp /etc/hosts /tmp/hosts\necho 127.0.0.1 `hostname` | sudo tee /etc/hosts\ncat /tmp/hosts | sudo tee -a /etc/hosts"
 
                     //optional - set the availability zone, required to match storage
                     custom (["openstack.compute.zone":availabilityZone])
@@ -158,7 +158,7 @@ cloud {
 				// Mandatory. Image ID.
 				imageId imageId
 				// Mandatory. Files from the local directory will be copied to this directory on the remote machine.
-				remoteDirectory "/root/gs-files"
+				remoteDirectory "/home/ubuntu/gs-files"
 				// Mandatory. Amount of RAM available to machine.
 				machineMemoryMB 3900
 				// Mandatory. Hardware ID.
@@ -169,7 +169,7 @@ cloud {
 				// are not used.
 				keyFile keyFile
 
-				username "root"
+				username "ubuntu"
 				
 				// Additional template options.
 				// When used with the default driver, the option names are considered
@@ -224,7 +224,7 @@ cloud {
 				privileged true
 
 				// optional. A native command line to be executed before the cloudify agent is started.
-                initializationCommand "#!/bin/sh\ncp /etc/hosts /tmp/hosts\necho 127.0.0.1 `hostname` > /etc/hosts\ncat  /tmp/hosts >> /etc/hosts"
+                initializationCommand "#!/bin/sh\ncp /etc/hosts /tmp/hosts\necho 127.0.0.1 `hostname` | sudo tee /etc/hosts\ncat /tmp/hosts | sudo tee -a /etc/hosts"
                                                 
 				//optional - set the availability zone, required to match storage
 				custom (["openstack.compute.zone":availabilityZone])
