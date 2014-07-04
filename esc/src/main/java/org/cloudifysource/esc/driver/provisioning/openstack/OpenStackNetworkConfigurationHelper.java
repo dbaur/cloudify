@@ -10,9 +10,14 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  ******************************************************************************/
+
+/**
+ * This file was changed.
+ *
+ * Changed helper to changes in ComputeTemplateNetwork.
+ */
 package org.cloudifysource.esc.driver.provisioning.openstack;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -48,13 +53,14 @@ class OpenStackNetworkConfigurationHelper {
 	private final Logger logger = Logger.getLogger(BaseProvisioningDriver.class.getName());
 
 	private static final String ASSOCIATE_FLOATING_IP_ON_BOOTSTRAP = "associateFloatingIpOnBootstrap";
+	private static final String FLOATING_IP_POOL = "floatingIpPool";
 
 	private boolean management;
 
 	private NetworkConfiguration managementNetworkConfiguration;
 	private NetworkConfiguration applicationNetworkConfiguration;
 
-	private List<String> computeNetworks;
+	private ComputeTemplateNetwork computeNetwork;
 	private AccessRules serviceAccessRules;
 
 	private Map<String, Object> managementNetworkOptions;
@@ -110,16 +116,8 @@ class OpenStackNetworkConfigurationHelper {
 		if (configuration.isManagement()) {
 			// Init management computeNetworks. Check if there is any.
 			final ComputeTemplate computeTemplate = cloud.getCloudCompute().getTemplates().get(templateName);
-			if (computeTemplate != null) {
-				final ComputeTemplateNetwork computeNetwork = computeTemplate.getComputeNetwork();
-				if (computeNetwork != null) {
-					this.computeNetworks = computeNetwork.getNetworks();
-				}
-				this.managementNetworkOptions = computeTemplate.getOptions();
-			}
-
-			if (computeNetworks == null) {
-				this.computeNetworks = new ArrayList<String>();
+			if(computeTemplate != null) {
+				this.computeNetwork = computeTemplate.getComputeNetwork();
 			}
 		}
 
@@ -135,7 +133,7 @@ class OpenStackNetworkConfigurationHelper {
 			if (this.useManagementNetwork()) {
 				logger.info("Using management network : " + this.managementNetworkConfiguration.getName());
 			} else {
-				logger.info("Using computeNetwork of template '" + templateName + "' : " + this.computeNetworks);
+				logger.info("Using computeNetwork of template '" + templateName + "' : " + this.computeNetwork.getNetworks());
 			}
 		}
 	}
@@ -156,14 +154,9 @@ class OpenStackNetworkConfigurationHelper {
 		final Map<String, ComputeTemplate> computeTemplates = configuration.getCloud().getCloudCompute().getTemplates();
 		final ComputeTemplate computeTemplate = computeTemplates.get(configuration.getCloudTemplate());
 		if (computeTemplate != null) {
-			final ComputeTemplateNetwork computeNetwork = computeTemplate.getComputeNetwork();
-			if (computeNetwork != null) {
-				this.computeNetworks = computeNetwork.getNetworks();
-			}
+			this.computeNetwork = computeTemplate.getComputeNetwork();
 		}
-		if (this.computeNetworks == null) {
-			this.computeNetworks = new ArrayList<String>();
-		}
+		
 
 		// Figure out the application network to use
 		final ServiceNetwork serviceNetwork = configuration.getNetwork();
@@ -177,9 +170,14 @@ class OpenStackNetworkConfigurationHelper {
 			final Map<String, NetworkConfiguration> templates = cloudNetwork.getTemplates();
 			this.applicationNetworkConfiguration = templates.get(serviceNetwork.getTemplate());
 			if (this.applicationNetworkConfiguration == null) {
-				final String message = "Service network template not found '" + serviceNetwork.getTemplate() + "'";
-				logger.severe(message);
-				throw new CloudProvisioningException(message);
+				if(this.computeNetwork == null) {
+					final String message = "Service network template not found '" + serviceNetwork.getTemplate() + "'";
+					logger.severe(message);
+					throw new CloudProvisioningException(message);
+				} else {
+					//fall back to the compute network
+					logger.info("Service network template not found. Fallback to compute network");
+				}
 			}
 		}
 
@@ -269,7 +267,7 @@ class OpenStackNetworkConfigurationHelper {
 			// If there is a management network then there it is
 			name = this.getManagementNetworkPrefixedName();
 		} else {
-			name = computeNetworks.get(0);
+			name = computeNetwork.getNetworks().get(0);
 		}
 		return name;
 	}
@@ -280,7 +278,7 @@ class OpenStackNetworkConfigurationHelper {
 	 * @return Returns the network names defined in the computeNetworks.
 	 */
 	public List<String> getComputeNetworks() {
-		return this.computeNetworks;
+		return this.computeNetwork.getNetworks();
 	}
 
 	public AccessRules getServiceAccessRules() {
@@ -413,6 +411,29 @@ class OpenStackNetworkConfigurationHelper {
 		}
 		return false;
 	}
+	
+	/**
+	 * Returns the name of the floating ip pool to use, when {@link #associateFloatingIp()} returns true.
+	 * 
+	 * Returns null, if no floating ip pool should be used.
+	 * 
+	 * @return Returns the name of the floating ip pool or null.
+	 */
+	public String associateFloatingIpPool() {
+		
+		if (management && this.managementNetworkConfiguration != null) {
+			return this.managementNetworkConfiguration.getCustom().get(FLOATING_IP_POOL);
+		} else if (this.applicationNetworkConfiguration != null) {
+			return this.applicationNetworkConfiguration.getCustom().get(FLOATING_IP_POOL);
+		} else if (this.computeNetwork != null && !this.computeNetwork.getNetworks().isEmpty()) {
+			return this.computeNetwork.getCustom().get(FLOATING_IP_POOL);
+		} else if (!management && this.applicationNetworkConfiguration == null && this.computeNetwork.getNetworks().isEmpty()) {
+			// We are using management networks only.
+			return this.managementNetworkConfiguration.getCustom()
+					.get(FLOATING_IP_POOL);
+		}
+		return null;
+	}
 
 	/***
 	 * Returns <code>true</code> if requires floating IP.
@@ -428,7 +449,11 @@ class OpenStackNetworkConfigurationHelper {
 			final String associate =
 					this.applicationNetworkConfiguration.getCustom().get(ASSOCIATE_FLOATING_IP_ON_BOOTSTRAP);
 			return BooleanUtils.toBoolean(associate);
-		} else if (!management && this.applicationNetworkConfiguration == null && this.computeNetworks.isEmpty()) {
+		} else if (this.computeNetwork != null && !this.computeNetwork.getNetworks().isEmpty()) {
+			final String associate =
+					this.computeNetwork.getCustom().get(ASSOCIATE_FLOATING_IP_ON_BOOTSTRAP);
+			return BooleanUtils.toBoolean(associate);
+		} else if (!management && this.applicationNetworkConfiguration == null && this.computeNetwork.getNetworks().isEmpty()) {
 			// We are using management networks only.
 			final String associate = this.managementNetworkConfiguration.getCustom()
 					.get(ASSOCIATE_FLOATING_IP_ON_BOOTSTRAP);

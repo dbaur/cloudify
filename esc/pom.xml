@@ -22,10 +22,27 @@
 				<enabled>true</enabled>
 			</snapshots>
 		</repository>
+		
+        <!-- We need this repo for the softlayer jclouds fix -->
+        <repository>
+            <id>my.mvn.repo</id>
+            <url>https://github.com/iliapolo/maven-repo/raw/master</url>
+        </repository>
 
+        <!-- Third party repo for jadeclient -->
+        <repository>
+            <id>eladron</id>
+            <name>eladron</name>
+            <url>http://eladron.e-technik.uni-ulm.de:8081/nexus/content/repositories/thirdparty/</url>
+        </repository>
 	</repositories>
 
 	<dependencies>
+		<dependency>
+      		<groupId>org.extility.jade</groupId>  
+       		<artifactId>jadeclient</artifactId>  
+       		<version>4.0.2-20131216124002.e6e1363a</version>
+		</dependency>
         <dependency>
             <groupId>org.apache.jclouds.provider</groupId>
             <artifactId>softlayer-all</artifactId>

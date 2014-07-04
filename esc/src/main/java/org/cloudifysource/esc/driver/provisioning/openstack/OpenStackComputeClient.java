@@ -10,6 +10,12 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  ******************************************************************************/
+
+/**
+ * This file was changed.
+ *
+ * Added possibility to assign floating ips from a fixed pool.
+ */
 package org.cloudifysource.esc.driver.provisioning.openstack;
 
 import java.util.ArrayList;
@@ -18,6 +24,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.apache.commons.lang.StringUtils;
+import org.cloudifysource.esc.driver.provisioning.openstack.rest.ComputeFloatingIp;
 import org.cloudifysource.esc.driver.provisioning.openstack.rest.ComputeLimits;
 import org.cloudifysource.esc.driver.provisioning.openstack.rest.Flavor;
 import org.cloudifysource.esc.driver.provisioning.openstack.rest.Image;
@@ -314,6 +321,52 @@ public class OpenStackComputeClient extends OpenStackBaseClient {
 		}
 
 		final ComputeLimits limits = JsonUtils.unwrapRootToObject(ComputeLimits.class, response, false);
-		return limits;
+		return limits;	
+	}
+	
+	/**
+	 * Returns an unassigned floating ip from the given pool.
+	 * @param pool
+	 * 			The floating ip pool to use.
+	 * @return
+	 * 			The first unassigned floating ip from the pool
+	 * @throws OpenstackException
+	 * 			If the request fails.
+	 */
+	public ComputeFloatingIp getUnassignedFloatingIp(final String pool) throws OpenstackException {
+		if(logger.isLoggable(Level.FINE)) {
+			logger.fine("Searching for unassigned floating ip.");
+		}
+		
+		final String response = this.doGet("os-floating-ips");
+		
+		final List<ComputeFloatingIp> ips = JsonUtils.unwrapRootToList(ComputeFloatingIp.class, response);
+		
+		//find a not already assigned ip with the correct pool.
+		for(ComputeFloatingIp ip : ips) {
+			if(ip.getInstanceId() == null && ip.getPool().equals(pool)) {
+				return ip;
+			}
+		}
+		
+		return null;
+	}
+	
+	/**
+	 * Assigns the given floating ip to the given server.
+	 * 
+	 * @param serverId
+	 * 			The id of the server.
+	 * @param floatingIp
+	 * 			The ip address if the floating ip.
+	 * @throws OpenstackException
+	 * 			If the request fails.
+	 */
+	public void assignFloatingIp(final String serverId, final String floatingIp) throws OpenstackException {
+		if(logger.isLoggable(Level.FINE)) {
+			logger.fine("Assigning floating ip"+ floatingIp +"to server "+serverId);
+		}
+		final String input = String.format("{\"addFloatingIp\":{\"address\":\"%s\"}}", floatingIp);
+		this.doPost("servers/" + serverId + "/action", input);
 	}
 }

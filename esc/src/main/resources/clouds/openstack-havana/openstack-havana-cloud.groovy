@@ -270,7 +270,7 @@ cloud {
 				privileged true
 
 				// optional. A native command line to be executed before the cloudify agent is started.
-                initializationCommand "echo Cloudify agent is about to start"
+                initializationCommand "#!/bin/sh\ncp /etc/hosts /tmp/hosts\necho 127.0.0.1 `hostname` > /etc/hosts\ncat  /tmp/hosts >> /etc/hosts"
                                                 
 				//optional - set the availability zone, required to match storage
 				custom (["openstack.compute.zone":availabilityZone])

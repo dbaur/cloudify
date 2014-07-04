@@ -1,9 +1,9 @@
 /***************
- * Cloud configuration file for the openstack-grizzly cloud
+ * Cloud configuration file for the openstack-havana cloud
  */
 cloud {
 	// Mandatory. The name of the cloud, as it will appear in the Cloudify UI.
-	name = "openstack-grizzly"
+	name = "openstack-omi"
 
 	/********
 	 * General configuration information about the cloud driver implementation.
@@ -34,7 +34,7 @@ cloud {
 		// different HTTP server instead.
 		// IMPORTANT: the default linux bootstrap script appends '.tar.gz' to the url whereas the default windows script appends '.zip'.
 		// Therefore, if setting a custom URL, make sure to leave out the suffix.
-		// cloudifyUrl "http://repository.cloudifysource.org/org/cloudifysource/2.7.0-5996-RELEASE/gigaspaces-cloudify-2.7.0-ga-b5996.zip"
+		cloudifyUrl "http://eladron.e-technik.uni-ulm.de/cloudify/gigaspaces-cloudify-2.7.0-ga-b5996"
 
 		// Mandatory. The prefix for new machines started for servies.
 		machineNamePrefix "cloudify-agent-"
@@ -72,61 +72,6 @@ cloud {
 
 	}
 	
-		/********************
-		 * Cloud storage configuration.
-		 */
-		cloudStorage {
-				templates ([
-					SMALL_BLOCK : storageTemplate{
-									deleteOnExit false
-									partitioningRequired true
-									size 1
-									path "/storage"
-									namePrefix "cloudify-storage-volume"
-									deviceName "/dev/vdc"
-									fileSystemType "ext4"
-									custom (["openstack.storage.volume.zone":availabilityZone])
-					}
-			])
-		}
-
-	/********************
-	 * Cloud networking configuration.
-	 */
-	cloudNetwork {
-
-		// Details of the management network, which is shared among all instances of the Cloudify Cluster.
-		management {
-			networkConfiguration {
-				name  "Cloudify-Management-Network"
-				subnets ([
-					subnet {
-						name "Cloudify-Management-Subnet"
-						range "177.86.0.0/24"
-						options ([ "gateway" : "177.86.0.111" ])
-					}
-				])
-				custom ([ "associateFloatingIpOnBootstrap" : "true" ])
-			}
-		}
-
-		// Templates for networks which applications may use
-		// Only service isntances belonging to an application will be attached to this network.
-		templates ([
-			"APPLICATION_NET" : networkConfiguration {
-				name  "Cloudify-Application-Network"
-				subnets {
-					subnet {
-						name "Cloudify-Application-Subnet"
-						range "160.0.0.0/24"
-						options { gateway "null" }
-					}
-				}
-				custom ([ "associateFloatingIpOnBootstrap" : "true" ])
-			}
-		])
-	}
-
 	cloudCompute {
 
 		/***********
@@ -137,7 +82,7 @@ cloud {
                     // Mandatory. Image ID.
                     imageId imageId
                     // Mandatory. Files from the local directory will be copied to this directory on the remote machine.
-                    remoteDirectory "/root/gs-files"
+                    remoteDirectory "/home/ubuntu/gs-files"
                     // Mandatory. Amount of RAM available to machine.
                     machineMemoryMB 1900
                     // Mandatory. Hardware ID.
@@ -148,7 +93,7 @@ cloud {
                     // are not used.
                     keyFile keyFile
 
-                    username "root"
+                    username "ubuntu"
 
                     // Additional template options.
                     // When used with the default driver, the option names are considered
@@ -158,7 +103,7 @@ cloud {
                             // "computeServiceName" : "nova",
 
                             // Optional. Set the name to search to find openstack compute endpoint.
-                            // "networkServiceName" : "quantum",
+                            // "networkServiceName" : "neutron",
 
                             // Optional. Set the network api version .
                             // "networkApiVersion"  : "v2.0",
@@ -182,9 +127,14 @@ cloud {
                     ])
 
                     // Optional. Use existing networks.
-                    // computeNetwork {
-                    //	networks (["SOME_INTERNAL_NETWORK"])
-                    // }
+                    computeNetwork {
+			networks ([
+               			 networkName,
+	            	])
+            		custom ([
+             			"associateFloatingIpOnBootstrap" : "true",
+            		])
+                    }
 
                     // when set to 'true', agent will automatically start after reboot.
                     autoRestartAgent true
@@ -199,7 +149,7 @@ cloud {
                     privileged true
 
                     // optional. A native command line to be executed before the cloudify agent is started.
-                    initializationCommand "#!/bin/sh\ncp /etc/hosts /tmp/hosts\necho 127.0.0.1 `hostname` > /etc/hosts\ncat  /tmp/hosts >> /etc/hosts"
+                    initializationCommand "#!/bin/sh\ncp /etc/hosts /tmp/hosts\necho 127.0.0.1 `hostname` | sudo tee /etc/hosts\ncat /tmp/hosts | sudo tee -a /etc/hosts"
 
                     //optional - set the availability zone, required to match storage
                     custom (["openstack.compute.zone":availabilityZone])
@@ -208,7 +158,7 @@ cloud {
 				// Mandatory. Image ID.
 				imageId imageId
 				// Mandatory. Files from the local directory will be copied to this directory on the remote machine.
-				remoteDirectory "/root/gs-files"
+				remoteDirectory "/home/ubuntu/gs-files"
 				// Mandatory. Amount of RAM available to machine.
 				machineMemoryMB 3900
 				// Mandatory. Hardware ID.
@@ -219,7 +169,7 @@ cloud {
 				// are not used.
 				keyFile keyFile
 
-				username "root"
+				username "ubuntu"
 				
 				// Additional template options.
 				// When used with the default driver, the option names are considered
@@ -252,10 +202,14 @@ cloud {
 					"keyPairName" : keyPair
 				])
 				
-				// Optional. Use existing networks.
-				// computeNetwork {
-				//	networks (["SOME_INTERNAL_NETWORK"])
-				// }
+                    		computeNetwork {
+                        		networks ([
+		                                 networkName,
+                        		])  
+                        		custom ([
+                                		"associateFloatingIpOnBootstrap" : "true",
+                        		])
+                    		}
 				
 				// when set to 'true', agent will automatically start after reboot.
 				autoRestartAgent true
@@ -270,7 +224,7 @@ cloud {
 				privileged true
 
 				// optional. A native command line to be executed before the cloudify agent is started.
-                initializationCommand "#!/bin/sh\ncp /etc/hosts /tmp/hosts\necho 127.0.0.1 `hostname` > /etc/hosts\ncat  /tmp/hosts >> /etc/hosts"
+                initializationCommand "#!/bin/sh\ncp /etc/hosts /tmp/hosts\necho 127.0.0.1 `hostname` | sudo tee /etc/hosts\ncat /tmp/hosts | sudo tee -a /etc/hosts"
                                                 
 				//optional - set the availability zone, required to match storage
 				custom (["openstack.compute.zone":availabilityZone])

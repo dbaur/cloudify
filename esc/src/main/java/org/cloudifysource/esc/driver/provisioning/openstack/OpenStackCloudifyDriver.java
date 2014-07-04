@@ -10,6 +10,12 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  ******************************************************************************/
+
+/**
+ * This file was changed.
+ *
+ * Added possibility to assign floating ips from a fixed pool.
+ */
 package org.cloudifysource.esc.driver.provisioning.openstack;
 
 import java.util.ArrayList;
@@ -59,6 +65,7 @@ import org.cloudifysource.esc.driver.provisioning.MachineDetails;
 import org.cloudifysource.esc.driver.provisioning.ManagementProvisioningContext;
 import org.cloudifysource.esc.driver.provisioning.ProvisioningContext;
 import org.cloudifysource.esc.driver.provisioning.context.ValidationContext;
+import org.cloudifysource.esc.driver.provisioning.openstack.rest.ComputeFloatingIp;
 import org.cloudifysource.esc.driver.provisioning.openstack.rest.ComputeLimits;
 import org.cloudifysource.esc.driver.provisioning.openstack.rest.Flavor;
 import org.cloudifysource.esc.driver.provisioning.openstack.rest.FloatingIp;
@@ -885,13 +892,24 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 
 			// Associate floating ips if configured
 			if (this.networkHelper.associateFloatingIp()) {
-				final String privateIPNetworkName = this.networkHelper.getPrivateIpNetworkName();
-				final Network privateIpNetwork = this.networkApi.getNetworkByName(privateIPNetworkName);
-				if (privateIpNetwork == null) {
-					throw new CloudProvisioningException("Couldn't find network '" + privateIPNetworkName
-							+ "' to assign floating IP.");
+				if(this.networkHelper.associateFloatingIpPool() == null) {
+					final String privateIPNetworkName = this.networkHelper.getPrivateIpNetworkName();
+					final Network privateIpNetwork = this.networkApi.getNetworkByName(privateIPNetworkName);
+					if (privateIpNetwork == null) {
+						throw new CloudProvisioningException("Couldn't find network '" + privateIPNetworkName
+								+ "' to assign floating IP.");
+					}
+					networkApi.createAndAssociateFloatingIp(serverId, privateIpNetwork.getId());
+				} else {
+					//associate a ip from the given pool
+					final ComputeFloatingIp ip = this.computeApi.getUnassignedFloatingIp(this.networkHelper.associateFloatingIpPool());
+					
+					if(ip == null) {
+						throw new CloudProvisioningException("Could not allocate a floating ip from pool "+this.networkHelper.associateFloatingIpPool());
+					}
+					
+					this.computeApi.assignFloatingIp(newServer.getId(), ip.getIp());
 				}
-				networkApi.createAndAssociateFloatingIp(serverId, privateIpNetwork.getId());
 			}
 
 			final MachineDetails md = this.createMachineDetails(template, newServer);

@@ -10,10 +10,18 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  *******************************************************************************/
+
+/**
+ * This file was changed.
+ *
+ * Added the the custom field and setters/getters for it.
+ */
 package org.cloudifysource.domain.cloud.compute;
 
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import org.cloudifysource.domain.internal.CloudifyDSLEntity;
 
@@ -28,6 +36,7 @@ import org.cloudifysource.domain.internal.CloudifyDSLEntity;
 public class ComputeTemplateNetwork {
 
 	private List<String> networks = new LinkedList<String>();
+	private Map<String, String> custom = new LinkedHashMap<String, String>();
 
 	public ComputeTemplateNetwork() {
 
@@ -40,4 +49,14 @@ public class ComputeTemplateNetwork {
 	public void setNetworks(final List<String> networks) {
 		this.networks = networks;
 	}
+	
+	public void setCustom(final Map<String, String> custom) {
+		this.custom = custom;
+	}
+	
+	public Map<String, String> getCustom() {
+		return custom;
+	}
+	
+	
 }
