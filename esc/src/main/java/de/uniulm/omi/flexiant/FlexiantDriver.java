@@ -17,6 +17,9 @@
 package de.uniulm.omi.flexiant;
 
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.ResourceBundle;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
@@ -28,6 +31,8 @@ import org.cloudifysource.esc.driver.provisioning.MachineDetails;
 import org.cloudifysource.esc.driver.provisioning.ManagementProvisioningContext;
 import org.cloudifysource.esc.driver.provisioning.ProvisioningContext;
 import org.cloudifysource.esc.driver.provisioning.context.ValidationContext;
+import org.cloudifysource.esc.driver.provisioning.validation.ValidationMessageType;
+import org.cloudifysource.esc.driver.provisioning.validation.ValidationResultType;
 
 public class FlexiantDriver extends BaseProvisioningDriver {
 
@@ -38,6 +43,9 @@ public class FlexiantDriver extends BaseProvisioningDriver {
     protected static final String DISK_PRODUCT_OFFER_OVERRIDE = "diskProductOffer";
 
     protected final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(this.getClass().getName());
+    
+    private static ResourceBundle defaultProvisioningDriverMessageBundle = ResourceBundle.getBundle(
+			"DefaultProvisioningDriverMessages", Locale.getDefault());
 
     /**
      * @see org.cloudifysource.esc.driver.provisioning.BaseProvisioningDriver#initDeployer(org.cloudifysource.domain.cloud.Cloud)
@@ -70,11 +78,11 @@ public class FlexiantDriver extends BaseProvisioningDriver {
      *
      * @return the machine details.
      */
-    protected MachineDetails createMachineDetails(final ComputeTemplate template, final Server server) {
+    protected MachineDetails createMachineDetails(final ComputeTemplate template, final FlexiantServer server) {
 
         final MachineDetails md = this.createMachineDetailsForTemplate(template);
 
-        md.setMachineId(server.getServerId());
+        md.setMachineId(server.getId());
         md.setCloudifyInstalled(false);
         md.setInstallationDirectory(null);
         md.setOpenFilesLimit(template.getOpenFilesLimit());
@@ -103,9 +111,9 @@ public class FlexiantDriver extends BaseProvisioningDriver {
         logger.fine("Creating new server");
 
         try {
-            final Server server = this.flexiantComputeClient.createServer(serverName, serverProductOffer, diskProductOffer, vdc, network, image);
-            this.flexiantComputeClient.startServer(server.getServerId());
-            logger.fine(String.format("Created new server with resource id %s",server.getServerId()));
+            final FlexiantServer server = this.flexiantComputeClient.createServer(serverName, serverProductOffer, diskProductOffer, vdc, network, image);
+            this.flexiantComputeClient.startServer(server.getId());
+            logger.fine(String.format("Created new server with resource id %s",server.getId()));
                         
             return this.createMachineDetails(template, server);
         } catch (FlexiantException e) {
@@ -137,7 +145,7 @@ public class FlexiantDriver extends BaseProvisioningDriver {
     public MachineDetails[] getExistingManagementServers() throws CloudProvisioningException {
 
         try {
-            final List<Server> servers = this.flexiantComputeClient.getServers(this.serverNamePrefix);
+            final List<FlexiantServer> servers = this.flexiantComputeClient.getServers(this.serverNamePrefix);
 
             MachineDetails[] mds = new MachineDetails[servers.size()];
             for (int i = 0; i < servers.size(); i++) {
@@ -178,7 +186,7 @@ public class FlexiantDriver extends BaseProvisioningDriver {
             throws InterruptedException,
             TimeoutException, CloudProvisioningException {
         
-    	Server server = null;
+    	FlexiantServer server = null;
     	
     	try {
 			 server = this.flexiantComputeClient.getServerByIp(machineIp);
@@ -240,6 +248,18 @@ public class FlexiantDriver extends BaseProvisioningDriver {
         final MachineDetails md = this.createServer(groupName, end, computeTemplate);
         return md;
     }
+    
+    protected String getFormattedMessage(final String msgName, final Object... arguments) {
+		return getFormattedMessage(getDefaultProvisioningDriverMessageBundle(), msgName, arguments);
+	}
+    
+    protected static ResourceBundle getDefaultProvisioningDriverMessageBundle() {
+		if (defaultProvisioningDriverMessageBundle == null) {
+			defaultProvisioningDriverMessageBundle = ResourceBundle.getBundle("DefaultProvisioningDriverMessages",
+					Locale.getDefault());
+		}
+		return defaultProvisioningDriverMessageBundle;
+	}
 
     /**
      * @see org.cloudifysource.esc.driver.provisioning.BaseProvisioningDriver#validateCloudConfiguration(org.cloudifysource.esc.driver.provisioning.context.ValidationContext)
@@ -247,6 +267,205 @@ public class FlexiantDriver extends BaseProvisioningDriver {
     @Override
     public void validateCloudConfiguration(ValidationContext validationContext) throws CloudProvisioningException {
         super.validateCloudConfiguration(validationContext);
-
+        
+        this.validateTemplates(validationContext, this.cloud.getCloudCompute().getTemplates());
+        
+    }
+    
+    protected void validateTemplates(final ValidationContext validationContext, final Map<String, ComputeTemplate> computeTemplates) throws CloudProvisioningException {
+    	
+    	validationContext.validationEvent(ValidationMessageType.TOP_LEVEL_VALIDATION_MESSAGE,
+				getFormattedMessage("validating_all_templates"));
+    	
+    	if(computeTemplates != null && !computeTemplates.isEmpty()) {
+    		for (final Map.Entry<String, ComputeTemplate> entry : computeTemplates.entrySet()) {
+    			this.validateImage(validationContext, entry.getValue(), entry.getKey());
+    			this.validateHardware(validationContext, entry.getValue(), entry.getKey());
+    			this.validateLocation(validationContext, entry.getValue(), entry.getKey());
+    		}
+    	} else {
+    		validationContext.validationEventEnd(ValidationResultType.ERROR);
+    		throw new CloudProvisioningException("Could not find any compute templates");
+    	}
+    	
+    }
+    
+    protected void validateImage(final ValidationContext validationContext, final ComputeTemplate computeTemplate, final String computeTemplateName) throws CloudProvisioningException {
+    	
+		validationContext.validationOngoingEvent(
+			ValidationMessageType.ENTRY_VALIDATION_MESSAGE,
+			String.format("Validating image of template %s", computeTemplateName)
+		);
+		
+		// check if a image id is defined
+		if(computeTemplate.getImageId() == null || computeTemplate.getImageId().isEmpty()) {
+			validationContext.validationEventEnd(ValidationResultType.ERROR);
+			throw new CloudProvisioningException(
+				String.format(
+					"Found empty imageId in template %s",
+					computeTemplateName
+				)
+			);
+		}
+		
+		// check if image is defined at flexiant and can be retrieved
+		FlexiantImage image = null;
+		try {
+			image = this.flexiantComputeClient.getImage(computeTemplate.getImageId());
+		} catch (FlexiantException e) {
+			validationContext.validationEventEnd(ValidationResultType.ERROR);
+			throw new CloudProvisioningException(
+				String.format(
+					"Error while retrieving image with id %s",
+					computeTemplate.getImageId()
+				),e
+			);
+		}
+		
+		if(image == null) {
+			validationContext.validationEventEnd(ValidationResultType.ERROR);
+			throw new CloudProvisioningException(
+				String.format(
+					"Could not retrieve the image with id %s.",
+					computeTemplate.getImageId()
+				)
+			);
+		}
+				
+		// the flexiant image needs a default user defined, otherwise we can not ssh
+		if(image.getDefaultUser() == null || image.getDefaultUser().isEmpty()) {
+			validationContext.validationEventEnd(ValidationResultType.ERROR);
+			throw new CloudProvisioningException(
+					String.format(
+						"The image %s has no default user configured",
+						image.getId()
+					)
+				);
+		}	
+		
+		// the flexiant default user needs to equal our user
+		if(!image.getDefaultUser().equals(computeTemplate.getUsername())) {
+			validationContext.validationEventEnd(ValidationResultType.ERROR);
+			throw new CloudProvisioningException(
+				String.format(
+					"The username in the image (%s) does not equal the username in the template (%s)",
+					image.getDefaultUser(),
+					computeTemplate.getUsername()
+				)
+			);
+		}
+		
+		// the template should not contain a password as it will be ignored
+		if(computeTemplate.getPassword() != null) {
+			validationContext.validationEventEnd(ValidationResultType.WARNING);
+			logger.warning(
+				"You configured a password for a computeTemplate. This is not supported by this driver."
+			);
+		}
+		
+		// the template should not contain a key file as it will be ignored
+		if(computeTemplate.getKeyFile() != null) {
+			validationContext.validationEventEnd(ValidationResultType.WARNING);
+			logger.warning(
+				"You configured a keyFile for a computeTemplate. This is not supported by this driver."
+			);
+		}
+		
+		// the image at flexiant must have generate password enabled, otherwise we can not ssh
+		if(!image.isGenPassword()) {
+			validationContext.validationEventEnd(ValidationResultType.ERROR);
+			throw new CloudProvisioningException(
+				String.format(
+					"Auto generate password is disable in the image %s",
+					image.getId()
+				)
+			);
+		}
+		
+		// no errors -> validation passed
+		validationContext.validationEventEnd(ValidationResultType.OK);
+    }
+    
+    protected void validateHardware(ValidationContext validationContext, ComputeTemplate template, String computeTemplateName) throws CloudProvisioningException {
+    	validationContext.validationOngoingEvent(
+    			ValidationMessageType.ENTRY_VALIDATION_MESSAGE,
+    			String.format("Validating hardware of template %s", computeTemplateName)
+    		);
+    	
+    	// check if we have a hardware id
+    	if(template.getHardwareId() == null || template.getHardwareId().isEmpty()) {
+    		validationContext.validationEventEnd(ValidationResultType.ERROR);
+    		throw new CloudProvisioningException(
+    			"No hardwareId configured."
+    		);
+    	}
+    	
+    	//we retrieve the hardware from flexiant and check if it exists
+    	FlexiantHardware hardware = null;
+    	try {
+			hardware = this.flexiantComputeClient.getHardware(template.getHardwareId());
+		} catch (FlexiantException e) {
+			validationContext.validationEventEnd(ValidationResultType.ERROR);
+			throw new CloudProvisioningException(
+				String.format(
+					"Error while retrieving the hardware %s",
+					template.getHardwareId()
+				),e
+			);
+		}
+    	
+    	if(hardware == null) {
+    		validationContext.validationEventEnd(ValidationResultType.ERROR);
+    		throw new CloudProvisioningException(
+    			String.format(
+    				"Could not retrieve the hardware with id %s",
+    				template.getHardwareId()
+    			)
+    		);
+    	}
+    	
+    	validationContext.validationEventEnd(ValidationResultType.OK);
+    }
+    
+    protected void validateLocation(ValidationContext validationContext, ComputeTemplate template, String computeTemplateName) throws CloudProvisioningException {
+    	validationContext.validationOngoingEvent(
+    			ValidationMessageType.ENTRY_VALIDATION_MESSAGE,
+    			String.format("Validating location of template %s", computeTemplateName)
+    		);
+    	
+    	//check if we have a location
+    	if(template.getLocationId() == null || template.getLocationId().isEmpty()) {
+    		validationContext.validationEventEnd(ValidationResultType.ERROR);
+    		throw new CloudProvisioningException(
+    			"No locationId configured."
+    		);
+    	}
+    	
+    	// retrieve the location from flexiant and check it
+    	FlexiantLocation location = null;
+    	try {
+			location = this.flexiantComputeClient.getLocation(template.getLocationId());
+		} catch (FlexiantException e) {
+			validationContext.validationEventEnd(ValidationResultType.ERROR);
+			throw new CloudProvisioningException(
+				String.format(
+					"Error while retrieving the location with id %s",
+					template.getLocationId()
+				),e
+			);
+		}
+    	
+    	//check
+    	if(location == null) {
+    		validationContext.validationEventEnd(ValidationResultType.ERROR);
+    		throw new CloudProvisioningException(
+    			String.format(
+    				"Could not retrieve the location with id %s",
+    				template.getLocationId()
+    			)
+    		);
+    	}
+    	
+    	validationContext.validationEventEnd(ValidationResultType.OK);
     }
 }

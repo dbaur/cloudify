@@ -16,10 +16,23 @@
 
 package de.uniulm.omi.flexiant;
 
-import net.flexiant.extility.*;
-
 import java.util.ArrayList;
 import java.util.List;
+
+import net.flexiant.extility.Condition;
+import net.flexiant.extility.Disk;
+import net.flexiant.extility.ExtilityException;
+import net.flexiant.extility.FilterCondition;
+import net.flexiant.extility.Image;
+import net.flexiant.extility.Job;
+import net.flexiant.extility.ListResult;
+import net.flexiant.extility.Nic;
+import net.flexiant.extility.ProductOffer;
+import net.flexiant.extility.ResourceType;
+import net.flexiant.extility.SearchFilter;
+import net.flexiant.extility.Server;
+import net.flexiant.extility.ServerStatus;
+import net.flexiant.extility.Vdc;
 
 /**
  * Client for calling compute operations on flexiants extility api.
@@ -29,7 +42,7 @@ public class FlexiantComputeClient extends FlexiantBaseClient {
     /**
      * @see de.uniulm.omi.flexiant.FlexiantComputeClient#FlexiantComputeClient(String, String, String)
      */
-    public FlexiantComputeClient(String endpoint, String apiUserName, String password) {
+    public FlexiantComputeClient(final String endpoint, final String apiUserName, final String password) {
         super(endpoint, apiUserName, password);
     }
 
@@ -42,24 +55,12 @@ public class FlexiantComputeClient extends FlexiantBaseClient {
      *
      * @throws FlexiantException
      */
-    public List<Server> getServers(String prefix) throws FlexiantException {
-
-        SearchFilter sf = new SearchFilter();
-        FilterCondition fc = new FilterCondition();
-
-        fc.setCondition(Condition.STARTS_WITH);
-        fc.setField("resourceName");
-
-        fc.getValue().add(prefix);
-
-        sf.getFilterConditions().add(fc);
-
-        try {
-            return this.getServers(sf);
-        } catch (ExtilityException e) {
-            throw new FlexiantException("Could not retrieve list of servers", e);
-        }
-
+	public List<FlexiantServer> getServers(final String prefix) throws FlexiantException {
+    	List<FlexiantServer> servers = new ArrayList<FlexiantServer>();
+    	for(Object o : this.getResources(prefix, "resourceName", ResourceType.SERVER)) {
+    		servers.add(new FlexiantServer((Server) o));
+    	}
+    	return servers;
     }
     
     /**
@@ -69,35 +70,12 @@ public class FlexiantComputeClient extends FlexiantBaseClient {
      * 
      * @throws FlexiantException
      */
-    public List<Server> getServers() throws FlexiantException {
-    	try{
-    		SearchFilter sf = null;
-    		return this.getServers(sf);
-    	} catch (ExtilityException e) {
-    		throw new FlexiantException("Could not retrieve list of servers", e);
+	public List<FlexiantServer> getServers() throws FlexiantException {
+		List<FlexiantServer> servers = new ArrayList<FlexiantServer>();
+    	for(Object o : this.getResources(ResourceType.SERVER)) {
+    		servers.add(new FlexiantServer((Server) o));
     	}
-    }
-    
-    /**
-     * Returns all servers matching search filter.
-     * 
-     * @param sf the search filter.
-     * 
-     * @return all servers matching the given search filter.
-     * 
-     * @throws ExtilityException
-     */
-    protected List<Server> getServers(SearchFilter sf) throws ExtilityException{
-    	
-    	ListResult result = this.getService().listResources(sf, null, ResourceType.SERVER);
-    	
-        java.util.ArrayList<Server> servers = new ArrayList<Server>();
-        
-        for (Object server : result.getList()) {
-            servers.add(this.mapServer((net.flexiant.extility.Server) server));
-        }
-        
-        return servers;
+    	return servers;
     }
            
     /**
@@ -112,7 +90,7 @@ public class FlexiantComputeClient extends FlexiantBaseClient {
      *  
      * @throws FlexiantException
      */
-    public Server getServerByIp(String ip) throws FlexiantException {
+    public FlexiantServer getServerByIp(String ip) throws FlexiantException {
     	return this.searchByIp(this.getServers(), ip);
     }
     
@@ -131,7 +109,7 @@ public class FlexiantComputeClient extends FlexiantBaseClient {
      * 
      * @throws FlexiantException
      */
-    public Server getServerByIp(String ip, String filter) throws FlexiantException {
+    public FlexiantServer getServerByIp(String ip, String filter) throws FlexiantException {
     	return this.searchByIp(this.getServers(filter), ip);
     }
     
@@ -143,8 +121,8 @@ public class FlexiantComputeClient extends FlexiantBaseClient {
      * 
      * @return the server matching the ip or null
      */
-    protected Server searchByIp(List<Server> servers, String ip) {
-    	for(Server server : servers) {
+    protected FlexiantServer searchByIp(List<FlexiantServer> servers, String ip) {
+    	for(FlexiantServer server : servers) {
     		if(server.getPublicIpAddress().equals(ip) || server.getPrivateIpAddress().equals(ip)) {
     			return server;
     		}
@@ -166,8 +144,8 @@ public class FlexiantComputeClient extends FlexiantBaseClient {
      *
      * @throws FlexiantException
      */
-    public Server createServer(String serverName, String serverProductOffer, String diskProductOffer, String vdc, String network, String image) throws FlexiantException {
-        net.flexiant.extility.Server server = new net.flexiant.extility.Server();
+    public FlexiantServer createServer(String serverName, String serverProductOffer, String diskProductOffer, String vdc, String network, String image) throws FlexiantException {
+        Server server = new Server();
         server.setResourceName(serverName);
         server.setCustomerUUID(this.getCustomerUUID());
         server.setProductOfferUUID(serverProductOffer);
@@ -214,12 +192,12 @@ public class FlexiantComputeClient extends FlexiantBaseClient {
      *
      * @throws FlexiantException
      */
-    public void startServer(Server server) throws FlexiantException {
+    public void startServer(FlexiantServer server) throws FlexiantException {
         if(server == null) {
             throw new IllegalArgumentException("The given server must not be null.");
         }
 
-        this.startServer(server.getServerId());
+        this.startServer(server.getId());
     }
 
     /**
@@ -242,12 +220,12 @@ public class FlexiantComputeClient extends FlexiantBaseClient {
      *
      * @throws FlexiantException
      */
-    public void stopServer(Server server) throws FlexiantException {
+    public void stopServer(FlexiantServer server) throws FlexiantException {
         if(server == null) {
             throw new IllegalArgumentException("The given server must not be null.");
         }
 
-        this.stopServer(server.getServerId());
+        this.stopServer(server.getId());
     }
     
     /**
@@ -257,8 +235,8 @@ public class FlexiantComputeClient extends FlexiantBaseClient {
      * 
      * @throws FlexiantException
      */
-    public void deleteServer(final Server server) throws FlexiantException {
-    	this.deleteServer(server.getServerId());
+    public void deleteServer(final FlexiantServer server) throws FlexiantException {
+    	this.deleteServer(server.getId());
     }
     
     /**
@@ -268,8 +246,8 @@ public class FlexiantComputeClient extends FlexiantBaseClient {
      * 
      * @throws FlexiantException
      */
-    public void deleteServer(final String server) throws FlexiantException {
-    	this.deleteResource(server);
+    public void deleteServer(final String serverUUID) throws FlexiantException {
+    	this.deleteResource(serverUUID);
     }
      
     /**
@@ -306,69 +284,156 @@ public class FlexiantComputeClient extends FlexiantBaseClient {
     }
 
     /**
-     * Maps the given flexiant server to an local server.
-     *
-     * @see net.flexiant.extility.Server
-     * @see de.uniulm.omi.flexiant.Server
-     *
-     * @param server the flexiant server
-     *
-     * @return the local server.
-     */
-    protected Server mapServer(net.flexiant.extility.Server server) {
-        Server myServer = new Server();
-        myServer.setServerId(server.getResourceUUID());
-        myServer.setServerName(server.getResourceName());
-        for (Nic nic : server.getNics()) {
-            if (nic.getNetworkType().equals(NetworkType.IP)) {
-                for (Ip ip : nic.getIpAddresses()) {
-                    if (ip.getType().equals(IpType.IPV_4)) {
-                        myServer.setPublicIpAddress(ip.getIpAddress());
-                        myServer.setPrivateIpAddress(ip.getIpAddress());
-                    }
-                }
-            }
-        }
-        myServer.setInitialUser(server.getInitialUser());
-        myServer.setInitialPassword(server.getInitialPassword());
-
-        return myServer;
-    }
-
-    /**
      * Returns information about the given server.
      *
      * @param serverUUID the id of the server.
      *
-     * @return a server object containing the information about the server.
+     * @return a server object containing the information about the server if any, otherwise null.
      *
      * @throws FlexiantException
      */
-    public Server getServer(String serverUUID) throws FlexiantException {
+    public FlexiantServer getServer(final String serverUUID) throws FlexiantException {
+        final Server server = (Server) this.getResource(serverUUID, ResourceType.SERVER);
+        if(server == null) {
+        	return null;
+        }
+        return new FlexiantServer(server);
+    }
+    
+    /**
+     * Retrieves the image identified by the given uuid.
+     * 
+     * @param imageUUID the id of the image
+     * 
+     * @return information about the image if any, otherwise null.
+     * 
+     * @throws FlexiantException
+     */
+    public FlexiantImage getImage(final String imageUUID) throws FlexiantException {
+    	final Image image = (Image) this.getResource(imageUUID, ResourceType.IMAGE);
+    	if(image == null) {
+        	return null;
+        }
+    	return new FlexiantImage(image);
+    }
+    
+    /**
+     * Retrieves the hardware identified by the given uuid.
+     *
+     * @param hardwareUUID the id of the hardware
+     * 
+     * @return information about the hardware if any, otherwise null.
+     * 
+     * @throws FlexiantException
+     */
+    public FlexiantHardware getHardware(final String hardwareUUID) throws FlexiantException {
+    	final ProductOffer productOffer = (ProductOffer) this.getResource(hardwareUUID, ResourceType.PRODUCTOFFER);
+    	if(productOffer == null) {
+        	return null;
+        }
+    	return new FlexiantHardware(productOffer);
+    }
+    
+    /**
+     * Retrieves the location identified by the given uuid.
+     * 
+     * @param locationUUID the id of the location.
+     * 
+     * @return an object representing the location if any, otherwise null.
+     * 
+     * @throws FlexiantException
+     */
+    public FlexiantLocation getLocation(final String locationUUID) throws FlexiantException {
+    	final Vdc vdc = (Vdc) this.getResource(locationUUID, ResourceType.VDC);
+    	if(vdc == null) {
+    		return null;
+    	}
+    	return new FlexiantLocation(vdc);
+    }
 
-        SearchFilter sf = new SearchFilter();
+    /**
+     * Retrieves a ressource from the flexiant api, which is identified by the given resource UUID.
+     * 
+     * @param resourceUUID the uuid of the resource.
+     * @param type the type of the resource.
+     * 
+     * @return an object representing the resource if any, otherwise null.
+     * 
+     * @throws FlexiantException if an error occurred during the call to the api.
+     */
+    protected Object getResource(final String resourceUUID, final ResourceType type) throws FlexiantException {
+    	
+    	SearchFilter sf = new SearchFilter();
         FilterCondition fc = new FilterCondition();
 
         fc.setCondition(Condition.IS_EQUAL_TO);
         fc.setField("resourceUUID");
-        fc.getValue().add(serverUUID);
+        fc.getValue().add(resourceUUID);
+        sf.getFilterConditions().add(fc);
+        
+        try {
+            ListResult result = this.getService().listResources(sf, null, type);
+
+            if (result.getList().size() > 1) {
+                throw new FlexiantException(String.format("Found multiple resource with the uuid %s", resourceUUID));
+            }
+            
+            if(result.getList().isEmpty()) {
+            	return null;
+            }
+
+            return result.getList().get(0);
+
+        } catch (ExtilityException e) {
+            throw new FlexiantException(String.format("Error while retrieving ressource %s", resourceUUID), e);
+        }
+    }
+    
+    /**
+     * Retrieves a list of resources matching the given prefix on the given attribute
+     * which are of the given type.
+     * 
+     * @param prefix the prefix to match.
+     * @param attribute the attribute where the prefix should match.
+     * @param type the type of the resource.
+     * 
+     * @return a list containing all resources matching the request.
+     * 
+     * @throws FlexiantException if an error occurs while contacting the api.
+     */
+    protected List<? extends Object> getResources(final String prefix, final String attribute, final ResourceType type) throws FlexiantException {
+    	
+    	SearchFilter sf = new SearchFilter();
+        FilterCondition fc = new FilterCondition();
+
+        fc.setCondition(Condition.STARTS_WITH);
+        fc.setField(attribute);
+
+        fc.getValue().add(prefix);
+
         sf.getFilterConditions().add(fc);
 
         try {
-            ListResult result = this.getService().listResources(sf, null, ResourceType.SERVER);
-
-            if (result.getList().size() != 1) {
-                throw new FlexiantException(String.format("Could not retrieve server %s", serverUUID));
-            }
-
-            net.flexiant.extility.Server server = (net.flexiant.extility.Server) result.getList().get(0);
-
-            return this.mapServer(server);
-
-        } catch (ExtilityException e) {
-            throw new FlexiantException(String.format("Error while creating server %s", serverUUID), e);
-        }
+			return this.getService().listResources(sf, null, type).getList();
+		} catch (ExtilityException e) {
+			throw new FlexiantException(String.format("Error while retrieving resource with prefix %s on attribute %s of type %s",prefix, attribute, type),e);
+		}
     }
-
-
+    
+    /**
+     * Returns all resources of the given type.
+     * 
+     * @param type the resource type.
+     * 
+     * @return a list of all resources of the given type.
+     * 
+     * @throws FlexiantException
+     */
+    protected List<? extends Object> getResources(final ResourceType type) throws FlexiantException{
+    	try {
+			return this.getService().listResources(null, null, type).getList();
+		} catch (ExtilityException e) {
+			throw new FlexiantException(String.format("Error while retrieving resources of type %s.", type),e);
+		}
+    }
 }
