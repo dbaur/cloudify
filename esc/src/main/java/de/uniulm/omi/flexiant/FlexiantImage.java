@@ -1,6 +1,6 @@
 package de.uniulm.omi.flexiant;
 
-import net.flexiant.extility.Image;
+import de.uniulm.omi.flexiant.extility.Image;
 
 public class FlexiantImage {
 	

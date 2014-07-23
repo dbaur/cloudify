@@ -16,11 +16,11 @@
 
 package de.uniulm.omi.flexiant;
 
-import net.flexiant.extility.Ip;
-import net.flexiant.extility.IpType;
-import net.flexiant.extility.NetworkType;
-import net.flexiant.extility.Nic;
-import net.flexiant.extility.Server;
+import de.uniulm.omi.flexiant.extility.Ip;
+import de.uniulm.omi.flexiant.extility.IpType;
+import de.uniulm.omi.flexiant.extility.NetworkType;
+import de.uniulm.omi.flexiant.extility.Nic;
+import de.uniulm.omi.flexiant.extility.Server;
 
 
 /**

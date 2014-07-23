@@ -19,20 +19,20 @@ package de.uniulm.omi.flexiant;
 import java.util.ArrayList;
 import java.util.List;
 
-import net.flexiant.extility.Condition;
-import net.flexiant.extility.Disk;
-import net.flexiant.extility.ExtilityException;
-import net.flexiant.extility.FilterCondition;
-import net.flexiant.extility.Image;
-import net.flexiant.extility.Job;
-import net.flexiant.extility.ListResult;
-import net.flexiant.extility.Nic;
-import net.flexiant.extility.ProductOffer;
-import net.flexiant.extility.ResourceType;
-import net.flexiant.extility.SearchFilter;
-import net.flexiant.extility.Server;
-import net.flexiant.extility.ServerStatus;
-import net.flexiant.extility.Vdc;
+import de.uniulm.omi.flexiant.extility.Condition;
+import de.uniulm.omi.flexiant.extility.Disk;
+import de.uniulm.omi.flexiant.extility.ExtilityException;
+import de.uniulm.omi.flexiant.extility.FilterCondition;
+import de.uniulm.omi.flexiant.extility.Image;
+import de.uniulm.omi.flexiant.extility.Job;
+import de.uniulm.omi.flexiant.extility.ListResult;
+import de.uniulm.omi.flexiant.extility.Nic;
+import de.uniulm.omi.flexiant.extility.ProductOffer;
+import de.uniulm.omi.flexiant.extility.ResourceType;
+import de.uniulm.omi.flexiant.extility.SearchFilter;
+import de.uniulm.omi.flexiant.extility.Server;
+import de.uniulm.omi.flexiant.extility.ServerStatus;
+import de.uniulm.omi.flexiant.extility.Vdc;
 
 /**
  * Client for calling compute operations on flexiants extility api.

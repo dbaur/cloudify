@@ -1,6 +1,6 @@
 package de.uniulm.omi.flexiant;
 
-import net.flexiant.extility.ProductOffer;
+import de.uniulm.omi.flexiant.extility.ProductOffer;
 
 public class FlexiantHardware {
 

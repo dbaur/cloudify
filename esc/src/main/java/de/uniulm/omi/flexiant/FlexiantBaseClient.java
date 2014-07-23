@@ -16,13 +16,14 @@
 
 package de.uniulm.omi.flexiant;
 
-import net.flexiant.extility.UserAPI;
-import net.flexiant.extility.UserService;
+import java.net.MalformedURLException;
+import java.net.URL;
 
 import javax.xml.namespace.QName;
 import javax.xml.ws.BindingProvider;
-import java.net.MalformedURLException;
-import java.net.URL;
+
+import de.uniulm.omi.flexiant.extility.UserAPI;
+import de.uniulm.omi.flexiant.extility.UserService;
 
 /**
  * Base client for creating a connection to

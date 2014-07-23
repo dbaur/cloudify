@@ -33,16 +33,16 @@
         <repository>
             <id>eladron</id>
             <name>eladron</name>
-            <url>http://eladron.e-technik.uni-ulm.de:8081/nexus/content/repositories/thirdparty/</url>
+            <url>http://eladron.e-technik.uni-ulm.de:8081/nexus/content/repositories/releases/</url>
         </repository>
 
 	</repositories>
 
 	<dependencies>
 		<dependency>
-      		<groupId>org.extility.jade</groupId>  
-       		<artifactId>jadeclient</artifactId>  
-       		<version>4.0.2-20131216124002.e6e1363a</version>
+			<groupId>de.uniulm.omi.flexiant.extility</groupId>
+			<artifactId>extilityclient</artifactId>
+			<version>b1-20140723</version>
 		</dependency>
         <dependency>
             <groupId>org.apache.jclouds.provider</groupId>

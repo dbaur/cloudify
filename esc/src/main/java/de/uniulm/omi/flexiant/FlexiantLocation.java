@@ -1,6 +1,6 @@
 package de.uniulm.omi.flexiant;
 
-import net.flexiant.extility.Vdc;
+import de.uniulm.omi.flexiant.extility.Vdc;
 
 public class FlexiantLocation {
 
