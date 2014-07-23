@@ -180,8 +180,10 @@ fi
 # Execute pre-bootstrap customization script if exists
 run_script "pre-bootstrap"
 
-JAVA_32_URL="http://repository.cloudifysource.org/com/oracle/java/1.6.0_32/jdk-6u32-linux-i586.bin"
-JAVA_64_URL="http://repository.cloudifysource.org/com/oracle/java/1.6.0_32/jdk-6u32-linux-x64.bin"
+# JAVA_32_URL="http://repository.cloudifysource.org/com/oracle/java/1.6.0_32/jdk-6u32-linux-i586.bin"
+# JAVA_64_URL="http://repository.cloudifysource.org/com/oracle/java/1.6.0_32/jdk-6u32-linux-x64.bin"
+JAVA_32_URL="http://eladron.e-technik.uni-ulm.de:8081/nexus/content/repositories/thirdparty/com/oracle/java/jdk-6u32-linux-i586/1.6.0_32/jdk-6u32-linux-i586-1.6.0_32.bin"
+JAVA_64_URL="http://eladron.e-technik.uni-ulm.de:8081/nexus/content/repositories/thirdparty/com/oracle/java/jdk-6u32-linux-x64/1.6.0_32/jdk-6u32-linux-x64-1.6.0_32.bin"
 
 # If not JDK specified, determine which JDK to install based on hardware architecture
 if [ -z "$GIGASPACES_AGENT_ENV_JAVA_URL" ]; then
