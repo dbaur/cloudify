@@ -31,9 +31,9 @@
 
         <!-- Third party repo for jadeclient -->
         <repository>
-            <id>eladron</id>
-            <name>eladron</name>
-            <url>http://eladron.e-technik.uni-ulm.de:8081/nexus/content/repositories/releases/</url>
+            <id>eladron-snapshots</id>
+            <name>Eladron Snapshot Repository</name>
+            <url>http://eladron.e-technik.uni-ulm.de:8081/nexus/content/repositories/snapshots/</url>
         </repository>
 
 	</repositories>
