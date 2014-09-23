@@ -31,7 +31,7 @@ public class CloudTemplateInstallerConfiguration {
 	/*****
 	 * Default interval between consecutive connection attempts.
 	 */
-	public static final int DEFAULT_CONNECTION_RETRY_INTERVAL_MILLIS = 1 * 60 * 1000; //1 minute
+	public static final int DEFAULT_CONNECTION_RETRY_INTERVAL_MILLIS = 1 * 30 * 1000; //30 seconds
 
 	/***
 	 * Indicates that installer should use default port for protocol used.
@@ -41,7 +41,7 @@ public class CloudTemplateInstallerConfiguration {
 	/***
 	 * Number of file transfer retries before file transfer is considered failed.
 	 */
-	public static final int DEFAULT_FILE_TRANSFER_RETRIES = 5;
+	public static final int DEFAULT_FILE_TRANSFER_RETRIES = 10;
 
 	/********
 	 * Connection timeout for connection attempts.
