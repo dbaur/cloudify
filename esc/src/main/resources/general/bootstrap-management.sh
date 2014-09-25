@@ -348,6 +348,14 @@ if [ "$AUTO_RESTART_AGENT" = "true" ]; then
 	cat <(crontab -l) <(echo "@reboot nohup ~/gigaspaces/tools/cli/cloudify.sh $START_COMMAND $START_COMMAND_ARGS") | crontab -
 fi
 
+# check the additional services we need to start
+if [ "$GSA_MODE = agent" ]; then
+    run_script "install-monitoring-agent"
+else
+    run_script "install-kairos"
+fi
+
+
 ./cloudify.sh $START_COMMAND $START_COMMAND_ARGS
 
 RETVAL=$?

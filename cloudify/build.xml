@@ -345,6 +345,8 @@
 
         <echo message="current cloud is ${current.cloud}"/>
         <copy file="${esc.local.copy}/src/main/resources/general/bootstrap-management.sh" todir="${build.dir}/clouds/${current.cloud}/upload" overwrite="true"/>
+        <copy file="${esc.local.copy}/src/main/resources/general/install-kairos.sh" todir="${build.dir}/clouds/${current.cloud}/upload" overwrite="true"/>
+        <copy file="${esc.local.copy}/src/main/resources/general/install-monitoring-agent.sh" todir="${build.dir}/clouds/${current.cloud}/upload" overwrite="true"/>
 
     </target>
 
