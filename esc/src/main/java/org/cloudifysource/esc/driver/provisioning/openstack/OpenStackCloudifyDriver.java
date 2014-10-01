@@ -1,11 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2013 GigaSpaces Technologies Ltd. All rights reserved
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
@@ -87,10 +87,10 @@ import com.j_spaces.kernel.Environment;
 
 /**
  * Openstack Driver which creates security groups and networks.
- * 
+ *
  * @author victor
  * @since 2.7.0
- * 
+ *
  */
 public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 
@@ -174,7 +174,7 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 
 	@Override
 	public void setConfig(final ComputeDriverConfiguration configuration) throws CloudProvisioningException {
-		
+
 		this.networkHelper = new OpenStackNetworkConfigurationHelper(configuration);
 
 		super.setConfig(configuration);
@@ -189,25 +189,25 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 		managementGroup = managementGroup == null ? MANAGMENT_MACHINE_PREFIX : managementGroup;
 		this.openstackPrefixes = new OpenStackResourcePrefixes(managementGroup, applicationName, serviceName);
 	}
-	
-	
+
+
 	private String getAvailabilityZone(final ComputeTemplate template) throws IllegalArgumentException {
-		
+
 		String zone = null;
 		Map<String, Object> customSettings = template.getCustom();
-		
+
 		if (customSettings != null) {
 			Object zoneObj = customSettings.get(OPENSTACK_COMPUTE_ZONE);
 			if (zoneObj != null) {
 				if (zoneObj instanceof String) {
 					zone = (String) zoneObj;
 				} else {
-					throw new IllegalArgumentException("Custom property " + OPENSTACK_COMPUTE_ZONE 
+					throw new IllegalArgumentException("Custom property " + OPENSTACK_COMPUTE_ZONE
 							+ " must be of type String");
 				}
 			}
 		}
-		
+
 		return zone;
 	}
 
@@ -329,7 +329,7 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 			final String managementMachineTemplate = cloud.getConfiguration().getManagementMachineTemplate();
 			cloudTemplate = cloud.getCloudCompute().getTemplates().get(managementMachineTemplate);
 			if (cloudTemplate == null) {
-				throw new IllegalStateException("Management compute template with name <" 
+				throw new IllegalStateException("Management compute template with name <"
 						+ managementMachineTemplate + "> could not be found.");
 			}
 		} else {
@@ -725,10 +725,10 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 			request.setKeyName(keyName);
 			request.setImageRef(imageId);
 			request.setFlavorRef(hardwareId);
-			
+
 			String availabilityZone = getAvailabilityZone(template);
 			if (StringUtils.isNotBlank(availabilityZone)) {
-				request.setAvailabilityZone(getAvailabilityZone(template));	
+				request.setAvailabilityZone(getAvailabilityZone(template));
 			}
 
 			// Add management network if exists
@@ -830,11 +830,11 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 				} else {
 					//associate a ip from the given pool
 					final ComputeFloatingIp ip = this.computeApi.getUnassignedFloatingIp(this.networkHelper.associateFloatingIpPool());
-					
+
 					if(ip == null) {
 						throw new CloudProvisioningException("Could not allocate a floating ip from pool "+this.networkHelper.associateFloatingIpPool());
 					}
-					
+
 					this.computeApi.assignFloatingIp(newServer.getId(), ip.getIp());
 				}
 			}
@@ -1256,18 +1256,22 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 	}
 
 	private void releaseFloatingIpsForServerId(final String serverId) {
+        if(this.networkHelper.associateFloatingIpPool() != null) {
+            logger.info("Keep floating ip as fixed pool is used.");
+            return;
+        }
 		try {
 			final List<Port> ports = networkApi.getPortsByDeviceId(serverId);
 			if (ports != null) {
 				for (final Port port : ports) {
 					final FloatingIp floatingIp = networkApi.getFloatingIpByPortId(port.getId());
 					if (floatingIp != null) {
-						try {
-							logger.info("Deleting Floating ip: " + floatingIp);
-							networkApi.deleteFloatingIP(floatingIp.getId());
-						} catch (final Exception e) {
-							logger.warning("Couldn't delete floating ip: " + floatingIp + " cause: " + e.getMessage());
-						}
+                        try {
+                            logger.info("Deleting Floating ip: " + floatingIp);
+                            networkApi.deleteFloatingIP(floatingIp.getId());
+                        } catch (final Exception e) {
+                            logger.warning("Couldn't delete floating ip: " + floatingIp + " cause: " + e.getMessage());
+                        }
 					}
 				}
 			}
@@ -1370,7 +1374,7 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 
 	/**
 	 * returns the message as it appears in the DefaultProvisioningDriver message bundle.
-	 * 
+	 *
 	 * @param msgName
 	 *            the message key as it is defined in the message bundle.
 	 * @param arguments
@@ -1383,7 +1387,7 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 
 	/**
 	 * Returns the message bundle of this cloud driver.
-	 * 
+	 *
 	 * @return the message bundle of this cloud driver.
 	 */
 	protected static ResourceBundle getDefaultProvisioningDriverMessageBundle() {
