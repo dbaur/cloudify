@@ -85,4 +85,26 @@ function download {
 	$DOWNLOADER $Q_FLAG $O_FLAG $3 $LINK_FLAG $2 || error_exit $? $4 "Failed downloading $1"
 }
 
-echo "TODO: Install monitoring agent"
+echo "Installing monitoring agent"
+
+#URL for the monitoring agent
+AGENT_URL="http://eladron.e-technik.uni-ulm.de:8081/nexus/service/local/repositories/snapshots/content/de/uniulm/omi/monitoring/monitoring-agent/1.0-SNAPSHOT/monitoring-agent-1.0-20141002.092641-3-jar-with-dependencies.jar"
+
+# download the monitoring agent
+download "Monitoring Agent" $AGENT_URL $WORKING_HOME_DIRECTORY/monitoring-agent.jar 901
+
+# copy the agent to its directory
+mkdir ~/monitoring-agent
+mv $WORKING_HOME_DIRECTORY/monitoring-agent.jar ~/monitoring-agent/monitoring-agent.jar
+
+#get ip of management machine
+IFS=':' read -r MANAGEMENT_IP_ADDRESS LUS_PORT <<< "$LUS_IP_ADDRESS"
+
+# run the monitoring agent
+echo "Starting monitoring agent with java in $JAVA_HOME, on ip address $MACHINE_IP_ADDRESS, talking to kairos db on $MANAGEMENT_IP_ADDRESS on port 9001"
+# nohup $JAVA_HOME/bin/java -jar ~/monitoring-agent/monitoring-agent.jar -ip $MACHINE_IP_ADDRESS -kip $MANAGEMENT_IP_ADDRESS -kp 9001 || error_exit $? 910 "Error starting monitoring agent."
+nohup $JAVA_HOME/bin/java -jar ~/monitoring-agent/monitoring-agent.jar -ip $MACHINE_IP_ADDRESS -kip $MANAGEMENT_IP_ADDRESS -kp 9001 &
+
+exit 0
+
+

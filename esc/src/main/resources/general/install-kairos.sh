@@ -70,18 +70,23 @@ function download {
 }
 
 # download path for kairos
-KAIROS_DB_URL="http://dl.bintray.com/brianhks/generic/kairosdb-0.9.3.tar.gz"
+KAIROS_DB_URL="https://github.com/kairosdb/kairosdb/releases/download/v0.9.4/kairosdb-0.9.4-6.tar.gz"
 
 # download the kairos database
 download "Kairos Database" $KAIROS_DB_URL $WORKING_HOME_DIRECTORY/kairos.tar.gz 901
 
 # untar the kairosdb
-tar xfz $WORKING_HOME_DIRECTORY/kairos.tar.gz -C ~/kairos || error_exit_on_level $? 902 "Failed extracting kairos database." 2
+mkdir ~/kairos || error_exit $? 905 "Error creating directory for kairos database."
+tar xfz $WORKING_HOME_DIRECTORY/kairos.tar.gz -C ~/kairos || error_exit $? 902 "Failed extracting kairos database."
 
 # configure the kairosdb
-sed -i '/kairosdb.jetty.port/c\kairosdb.jetty.port=9001' ~/kairos/conf/kairosdb.properties || error_exit $? 903 "Error configuring the kairos database"
+sed -i '/kairosdb.jetty.port/c\kairosdb.jetty.port=9001' ~/kairos/kairosdb/conf/kairosdb.properties || error_exit $? 903 "Error configuring the kairos database"
 
+# set kairos pid file
+export KAIROS_PID_FILE=~/kairos/kairosdb.pid
+
+echo "Starting kairos db service"
 # start the kairos db as deamon
-~/kairos/bin/kairosdb.sh start || error_exit $2 904 "Error starting the kairos database"
+nohup ~/kairos/kairosdb/bin/kairosdb.sh start || error_exit $? 904 "Error starting the kairos database"
 
 exit 0;
