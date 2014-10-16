@@ -248,7 +248,8 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 					discovery.getPort(),
 					discovery.getDiscoveryPort(),
 					orchestrator.getPort(),
-					usm.getPortRange()
+					usm.getPortRange(),
+                    9001
 					));
 			final String managementPortRange = StringUtils.join(managementPorts, ",");
 			this.createManagementRule(managementSecurityGroup.getId(), managementPortRange, clusterSecgroup.getId());
