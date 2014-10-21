@@ -182,10 +182,10 @@ run_script "pre-bootstrap"
 
 # JAVA_32_URL="http://repository.cloudifysource.org/com/oracle/java/1.6.0_32/jdk-6u32-linux-i586.bin"
 # JAVA_64_URL="http://repository.cloudifysource.org/com/oracle/java/1.6.0_32/jdk-6u32-linux-x64.bin"
-# JAVA_32_URL="http://eladron.e-technik.uni-ulm.de:8081/nexus/content/repositories/thirdparty/com/oracle/java/jdk-6u32-linux-i586/1.6.0_32/jdk-6u32-linux-i586-1.6.0_32.bin"
-# JAVA_64_URL="http://eladron.e-technik.uni-ulm.de:8081/nexus/content/repositories/thirdparty/com/oracle/java/jdk-6u32-linux-x64/1.6.0_32/jdk-6u32-linux-x64-1.6.0_32.bin"
-JAVA_32_URL="http://eladron.e-technik.uni-ulm.de:8081/nexus/service/local/repositories/thirdparty/content/com/oracle/java/jdk-7u67-linux-i586/1.7.0_67/jdk-7u67-linux-i586-1.7.0_67.bin"
-JAVA_64_URL="http://eladron.e-technik.uni-ulm.de:8081/nexus/service/local/repositories/thirdparty/content/com/oracle/java/jdk-7u67-linux-x64/1.7.0_67/jdk-7u67-linux-x64-1.7.0_67.bin"
+JAVA_32_URL="http://eladron.e-technik.uni-ulm.de:8081/nexus/content/repositories/thirdparty/com/oracle/java/jdk-6u32-linux-i586/1.6.0_32/jdk-6u32-linux-i586-1.6.0_32.bin"
+JAVA_64_URL="http://eladron.e-technik.uni-ulm.de:8081/nexus/content/repositories/thirdparty/com/oracle/java/jdk-6u32-linux-x64/1.6.0_32/jdk-6u32-linux-x64-1.6.0_32.bin"
+# JAVA_32_URL="http://eladron.e-technik.uni-ulm.de:8081/nexus/service/local/repositories/thirdparty/content/com/oracle/java/jdk-7u67-linux-i586/1.7.0_67/jdk-7u67-linux-i586-1.7.0_67.bin"
+# JAVA_64_URL="http://eladron.e-technik.uni-ulm.de:8081/nexus/service/local/repositories/thirdparty/content/com/oracle/java/jdk-7u67-linux-x64/1.7.0_67/jdk-7u67-linux-x64-1.7.0_67.bin"
 
 # If not JDK specified, determine which JDK to install based on hardware architecture
 if [ -z "$GIGASPACES_AGENT_ENV_JAVA_URL" ]; then
@@ -205,16 +205,21 @@ fi
 if [ "$GIGASPACES_AGENT_ENV_JAVA_URL" = "NO_INSTALL" ]; then
 	echo "JDK will not be installed"
 else
-	echo Previous JAVA_HOME value -- $JAVA_HOME
-	export GIGASPACES_ORIGINAL_JAVA_HOME=$JAVA_HOME
-	download "JDK" $GIGASPACES_AGENT_ENV_JAVA_URL $WORKING_HOME_DIRECTORY/java.tar.gz 101
-	rm -rf ~/java || error_exit $? 102 "Failed removing old java installation directory"
-	mkdir ~/java
-	cd ~/java
-	
-	echo Installing JDK
-	tar xf $WORKING_HOME_DIRECTORY/java.tar.gz -C ~/java --strip-components 1 || error_exit $? 103 "Failed installing JDK"
+    echo Previous JAVA_HOME value -- $JAVA_HOME
+    export GIGASPACES_ORIGINAL_JAVA_HOME=$JAVA_HOME
+    download "JDK" $GIGASPACES_AGENT_ENV_JAVA_URL $WORKING_HOME_DIRECTORY/java.bin 101
+    chmod +x $WORKING_HOME_DIRECTORY/java.bin
+    echo -e "\n" > $WORKING_HOME_DIRECTORY/input.txt
+    rm -rf ~/java || error_exit $? 102 "Failed removing old java installation directory"
+    mkdir ~/java
+    cd ~/java
+
+    echo Installing JDK
+    $WORKING_HOME_DIRECTORY/java.bin < $WORKING_HOME_DIRECTORY/input.txt > /dev/null
+    mv ~/java/*/* ~/java || error_exit $? 103 "Failed moving JDK installation"
+    rm -f $WORKING_HOME_DIRECTORY/input.txt
     export JAVA_HOME=~/java
+
     echo New JAVA_HOME value -- $JAVA_HOME
     rm -f $WORKING_HOME_DIRECTORY/java.tar.gz || error_exit $? 136 "Failed deleting java.tar.gz from home directory"
 fi  
