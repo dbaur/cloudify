@@ -249,7 +249,6 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 					discovery.getDiscoveryPort(),
 					orchestrator.getPort(),
 					usm.getPortRange(),
-                    9001
 					));
 			final String managementPortRange = StringUtils.join(managementPorts, ",");
 			this.createManagementRule(managementSecurityGroup.getId(), managementPortRange, clusterSecgroup.getId());
@@ -274,7 +273,7 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 			final ComputeTemplate template = this.cloud.getCloudCompute().getTemplates().get(managementMachineTemplate);
 			final FileTransferModes fileTransfer = template.getFileTransfer();
 
-			final List<?> publicPorts = Arrays.asList(fileTransfer.getDefaultPort(), webui.getPort(), rest.getPort());
+			final List<?> publicPorts = Arrays.asList(fileTransfer.getDefaultPort(), webui.getPort(), rest.getPort(), 9001);
 			final String publicPortRange = StringUtils.join(publicPorts, ",");
 			this.createManagementRule(managementSecurityGroup.getId(), publicPortRange, null);
 		} catch (final Exception e) {
