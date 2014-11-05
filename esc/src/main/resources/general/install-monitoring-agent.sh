@@ -88,7 +88,7 @@ function download {
 echo "Installing monitoring agent"
 
 #URL for the monitoring agent
-AGENT_URL="http://eladron.e-technik.uni-ulm.de:8081/nexus/service/local/repositories/snapshots/content/de/uniulm/omi/monitoring/monitoring-agent/1.1-SNAPSHOT/monitoring-agent-1.1-20141016.150956-10-jar-with-dependencies.jar"
+AGENT_URL="http://eladron.e-technik.uni-ulm.de:8081/nexus/service/local/repositories/snapshots/content/de/uniulm/omi/monitoring/monitoring-agent/1.1-SNAPSHOT/monitoring-agent-1.1-20141104.161625-13-jar-with-dependencies.jar"
 
 # download the monitoring agent
 download "Monitoring Agent" $AGENT_URL $WORKING_HOME_DIRECTORY/monitoring-agent.jar 901
