@@ -272,6 +272,8 @@ public final class CloudifyConstants {
     public static final String USM_METRIC_PROCESS_CPU_TIME = "Process Cpu Time";
     public static final String USM_METRIC_PROCESS_CPU_KERNEL_TIME = "Process Cpu Kernel Time";
     public static final String USM_METRIC_PROCESS_TOTAL_CPU_TIME = "Total Process Cpu Time";
+    public static final String USM_METRIC_PROCESS_TOTAL_SYSTEM_CPU_TIME = "Total System Cpu Time";
+    public static final String USM_METRIC_PROCESS_LOAD_AVERAGE = "System Load Average";
     public static final String USM_METRIC_PROCESS_GROUP_ID = "Process GroupId";
     public static final String USM_METRIC_PROCESS_USER_ID = "Process User Id";
     public static final String USM_METRIC_PROCESS_TOTAL_PAGE_FAULTS = "Total Num Of PageFaults";

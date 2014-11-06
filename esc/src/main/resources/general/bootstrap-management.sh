@@ -351,7 +351,7 @@ if [ -f nohup.out ]; then
 fi
 
 # START AGENT ALONE OR WITH MANAGEMENT
-START_COMMAND_ARGS="-timeout 30 --verbose"
+START_COMMAND_ARGS="-timeout 60 --verbose"
 if [ "$GSA_MODE" = "agent" ]; then
 	ERRMSG="Failed starting agent"
 	START_COMMAND="start-agent"

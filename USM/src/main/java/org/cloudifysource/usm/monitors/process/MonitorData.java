@@ -21,13 +21,7 @@ import java.util.logging.Level;
 
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.usm.monitors.MonitorException;
-import org.hyperic.sigar.ProcCpu;
-import org.hyperic.sigar.ProcCred;
-
-import org.hyperic.sigar.ProcMem;
-import org.hyperic.sigar.ProcState;
-import org.hyperic.sigar.Sigar;
-import org.hyperic.sigar.SigarException;
+import org.hyperic.sigar.*;
 
 /**
  * Adds monitor targets to be polled by the JMX monitor thread.
@@ -40,6 +34,8 @@ public class MonitorData {
 
 	private static java.util.logging.Logger logger =
 			java.util.logging.Logger.getLogger(MonitorData.class.getName());
+	private long totalSystemCpuTime;
+	private double loadAverage;
 
 	public MonitorData(final Sigar sigar, final long pid) throws MonitorException {
 		try {
@@ -92,6 +88,17 @@ public class MonitorData {
 
 		}
 
+		try {
+			logger.log(Level.INFO, "Gathering advanced information.");
+			final Cpu cpu = sigar.getCpu();
+			this.totalSystemCpuTime = cpu.getTotal();
+			this.loadAverage = sigar.getLoadAverage()[0];
+		} catch (final SigarException e) {
+			logger.log(Level.FINE, "Failed to gather process info from Sigar: " + e.getMessage(), e);
+		} catch (final Throwable t) {
+			logger.log(Level.SEVERE, "Failed to gather process info from Sigar: " + t.getMessage(), t);
+		}
+
 	}
 
 	/*******
@@ -133,6 +140,10 @@ public class MonitorData {
 		// map.put("Classpath", safeS(classPath));
 		monitorMap.put(CloudifyConstants.USM_METRIC_THREAD_COUNT, threadCount);
 		monitorMap.put(CloudifyConstants.USM_METRIC_PEAK_THREAD_COUNT, peakThreadCount);
+
+		monitorMap.put(CloudifyConstants.USM_METRIC_PROCESS_LOAD_AVERAGE, loadAverage);
+		monitorMap.put(CloudifyConstants.USM_METRIC_PROCESS_TOTAL_SYSTEM_CPU_TIME, totalSystemCpuTime);
+
 	}
 
 
