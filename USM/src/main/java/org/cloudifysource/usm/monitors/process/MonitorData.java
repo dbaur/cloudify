@@ -36,6 +36,7 @@ public class MonitorData {
 			java.util.logging.Logger.getLogger(MonitorData.class.getName());
 	private long totalSystemCpuTime;
 	private double loadAverage;
+	private double totalCpuPercentage;
 
 	public MonitorData(final Sigar sigar, final long pid) throws MonitorException {
 		try {
@@ -93,6 +94,7 @@ public class MonitorData {
 			final Cpu cpu = sigar.getCpu();
 			this.totalSystemCpuTime = cpu.getTotal();
 			this.loadAverage = sigar.getLoadAverage()[0];
+			this.totalCpuPercentage = sigar.getCpuPerc().getCombined();
 		} catch (final SigarException e) {
 			logger.log(Level.FINE, "Failed to gather process info from Sigar: " + e.getMessage(), e);
 		} catch (final Throwable t) {
@@ -143,6 +145,7 @@ public class MonitorData {
 
 		monitorMap.put(CloudifyConstants.USM_METRIC_PROCESS_LOAD_AVERAGE, loadAverage);
 		monitorMap.put(CloudifyConstants.USM_METRIC_PROCESS_TOTAL_SYSTEM_CPU_TIME, totalSystemCpuTime);
+		monitorMap.put(CloudifyConstants.USM_METRIC_PROCESS_TOTAL_SYSTEM_PERCENTAGE, totalCpuPercentage);
 
 	}
 

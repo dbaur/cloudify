@@ -286,6 +286,7 @@ public final class CloudifyConstants {
     public static final String USM_METRIC_COMMITTED_VIRTUAL_MEM_SIZE = "Committed Virtual Memory Size";
     public static final String USM_METRIC_THREAD_COUNT = "Thread Count";
     public static final String USM_METRIC_PEAK_THREAD_COUNT = "Peak Thread Count";
+    public static final String USM_METRIC_PROCESS_TOTAL_SYSTEM_PERCENTAGE = "System Cpu Percentage";
 
     public static final int SSH_PORT = 22;
 
