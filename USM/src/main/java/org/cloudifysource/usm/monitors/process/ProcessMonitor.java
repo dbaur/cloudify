@@ -48,7 +48,9 @@ public class ProcessMonitor implements Monitor {
 		final List<Long> pids = usm.getServiceProcessesList();
 
 		if (pids.isEmpty()) {
-			return new HashMap<String, Number>();
+			final MonitorData data = new MonitorData(sigar);
+			final Map<String, Number> map = data.getDataMap();
+			return map;
 		} else if (pids.size() == 1) {
 			final MonitorData data = new MonitorData(sigar, pids.get(0));
 			final Map<String, Number> map = data.getDataMap();

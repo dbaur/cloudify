@@ -48,6 +48,30 @@ public class MonitorData {
 		}
 	}
 
+	public MonitorData(final Sigar sigar) throws MonitorException {
+		try {
+			gatherData(sigar);
+		} catch (final SigarException e) {
+			final String msg = "Failed to read external process data via Sigar: " + e;
+			logger.severe(msg);
+			throw new MonitorException(msg, e);
+		}
+	}
+
+	private void gatherData(final Sigar sigar) throws SigarException {
+		try {
+			logger.log(Level.INFO, "Gathering advanced information.");
+			final Cpu cpu = sigar.getCpu();
+			this.totalSystemCpuTime = cpu.getTotal();
+			this.loadAverage = sigar.getLoadAverage()[0];
+			this.totalCpuPercentage = sigar.getCpuPerc().getCombined();
+		} catch (final SigarException e) {
+			logger.log(Level.FINE, "Failed to gather process info from Sigar: " + e.getMessage(), e);
+		} catch (final Throwable t) {
+			logger.log(Level.SEVERE, "Failed to gather process info from Sigar: " + t.getMessage(), t);
+		}
+	}
+
 	private void gatherData(final Sigar sigar, final long pid)
 			throws SigarException {
 
@@ -88,19 +112,6 @@ public class MonitorData {
 			logger.log(Level.FINE, "Failed to gather process info from Sigar: " + e.getMessage(), e);
 
 		}
-
-		try {
-			logger.log(Level.INFO, "Gathering advanced information.");
-			final Cpu cpu = sigar.getCpu();
-			this.totalSystemCpuTime = cpu.getTotal();
-			this.loadAverage = sigar.getLoadAverage()[0];
-			this.totalCpuPercentage = sigar.getCpuPerc().getCombined();
-		} catch (final SigarException e) {
-			logger.log(Level.FINE, "Failed to gather process info from Sigar: " + e.getMessage(), e);
-		} catch (final Throwable t) {
-			logger.log(Level.SEVERE, "Failed to gather process info from Sigar: " + t.getMessage(), t);
-		}
-
 	}
 
 	/*******
