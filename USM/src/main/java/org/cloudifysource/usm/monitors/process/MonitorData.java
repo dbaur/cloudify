@@ -28,6 +28,8 @@ import org.hyperic.sigar.*;
  * 
  * @author giladh, barakme
  * @since 1.0.
+ *
+ * THIS FILE HAS BEEN MODIFIED.
  * 
  */
 public class MonitorData {
@@ -60,7 +62,6 @@ public class MonitorData {
 
 	private void gatherData(final Sigar sigar) throws SigarException {
 		try {
-			logger.log(Level.INFO, "Gathering advanced information.");
 			final Cpu cpu = sigar.getCpu();
 			this.totalSystemCpuTime = cpu.getTotal();
 			this.loadAverage = sigar.getLoadAverage()[0];
