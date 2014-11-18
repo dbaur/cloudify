@@ -38,7 +38,7 @@ public class ServiceLifecycle implements Serializable {
 
 	private static final int DEFAULT_START_DETECTION_INTERVAL_SECONDS = 5;
 
-	private static final int DEFAULT_START_DETECTION_SECONDS = 90;
+	private static final int DEFAULT_START_DETECTION_SECONDS = 360;
 
 	/**
 	 *
